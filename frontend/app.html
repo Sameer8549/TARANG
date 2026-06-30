@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="kn">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>TARANG — ಸಮುದ್ರದಿಂದ SOS. ಇಂಟರ್ನೆಟ್ ಇಲ್ಲದೆ.</title>
+<meta name="description" content="TARANG is a coastal rescue operations dashboard by Deploy or Die, Coastal Innovation Hackathon."/>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,700;0,800;1,400;1,700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:#0A1628;color:#F5F0E8;line-height:1.6;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+button{font-family:'Inter',sans-serif;cursor:pointer}
+:root{
+  --navy:#0A1628;--salt:#F5F0E8;--rust:#C4521A;--steel:#2E6B8A;
+  --charcoal:#1C2B3A;--mist:#8FA8B8;--green:#1E7A4E;--red:#C0392B;--amber:#B8860B;
+  --panel:#111E30;
+}
+
+/* ══ DESKTOP NAV ══ */
+#dnav{position:sticky;top:0;z-index:300;height:64px;background:var(--charcoal);border-bottom:2px solid rgba(196,82,26,.3);display:flex;align-items:center;padding:0 24px}
+.nb{font-family:'Lora',serif;font-weight:800;font-size:22px;letter-spacing:.06em;color:var(--salt);margin-right:28px}
+.nls{display:flex;gap:2px}
+.nl{font-size:13px;font-weight:500;color:var(--mist);padding:6px 13px;border-bottom:2px solid transparent;transition:all .2s}
+.nl:hover{color:var(--salt)}.nl.on{color:var(--salt);border-bottom-color:var(--rust)}
+.nr{margin-left:auto;display:flex;align-items:center;gap:14px}
+#dnav-clk{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mist)}
+.ncta{font-size:13px;font-weight:600;padding:8px 16px;background:var(--rust);border:2px solid var(--rust);color:#fff;transition:all .2s}
+.ncta:hover{background:transparent;color:var(--rust)}
+
+/* ══ MOBILE HEADER ══ */
+#mnav{display:none;position:sticky;top:0;z-index:300;height:56px;background:var(--charcoal);border-bottom:1px solid rgba(196,82,26,.3);align-items:center;justify-content:space-between;padding:0 20px}
+.mnav-brand{font-family:'Lora',serif;font-weight:800;font-size:20px;color:var(--salt)}
+.mnav-badge{font-family:'JetBrains Mono',monospace;font-size:9px;padding:3px 8px;border:1px solid var(--green);color:var(--green)}
+
+/* ══ MOBILE BOTTOM NAV ══ */
+#mobnav{display:none;position:fixed;bottom:0;left:0;right:0;height:64px;background:var(--charcoal);border-top:1px solid rgba(245,240,232,.1);z-index:300;align-items:stretch}
+.mni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--mist);transition:color .2s;border:none;background:none;padding:8px 4px;cursor:pointer;text-decoration:none}
+.mni.on{color:var(--rust)}.mni:hover{color:var(--salt)}
+.mni svg{width:22px;height:22px;flex-shrink:0}
+.mni span{font-family:'JetBrains Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.04em}
+.mni.sos-tab{color:#fff;background:var(--rust)}
+
+/* ══ MOBILE FLOATING SOS ══ */
+#mob-sos{display:none;position:fixed;bottom:76px;right:20px;z-index:400;width:64px;height:64px;background:var(--rust);border:2px solid var(--rust);border-radius:50%;align-items:center;justify-content:center;flex-direction:column;box-shadow:0 4px 20px rgba(196,82,26,.5);animation:sosFloat 3s ease-in-out infinite}
+@keyframes sosFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-4px) scale(1.02)}}
+#mob-sos svg{width:24px;height:24px}
+#mob-sos span{font-family:'JetBrains Mono',monospace;font-size:8px;color:#fff;margin-top:2px}
+
+/* ══ TICKER ══ */
+#ticker-wrap{background:rgba(196,82,26,.07);border-top:1px solid rgba(196,82,26,.2);border-bottom:1px solid rgba(196,82,26,.15);overflow:hidden;height:36px;display:flex;align-items:center}
+.ticker-inner{display:flex;gap:0;white-space:nowrap;animation:tickScroll 40s linear infinite}
+@keyframes tickScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.tick-item{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mist);padding:0 32px;display:inline-flex;align-items:center;gap:8px}
+.tick-dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+.td-red{background:var(--red)}.td-green{background:var(--green)}.td-amber{background:var(--amber)}
+.tick-sep{color:rgba(196,82,26,.3);font-size:16px;padding:0 4px}
+
+/* ══ HERO ══ */
+.hero{min-height:calc(100vh - 100px);display:flex;align-items:center;position:relative;overflow:hidden}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 70% 50%,rgba(46,107,138,.08) 0%,transparent 70%)}
+.hero-in{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;max-width:1240px;margin:0 auto;padding:80px 40px;position:relative;z-index:1;width:100%}
+.hero-eyebrow{display:flex;gap:8px;margin-bottom:22px;flex-wrap:wrap}
+.echip{font-family:'JetBrains Mono',monospace;font-size:10px;padding:5px 11px;border:1px solid rgba(196,82,26,.4);color:var(--rust);text-transform:uppercase;letter-spacing:.08em}
+.echip.live{border-color:var(--green);color:var(--green);display:flex;align-items:center;gap:6px}
+.echip.live::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink .8s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.hero-h1{font-family:'Lora',serif;font-size:clamp(38px,4.5vw,66px);color:var(--salt);line-height:1.02;margin-bottom:20px;letter-spacing:-.01em}
+.hero-h1 em{color:var(--rust);font-style:italic}
+.hero-h1 .kn{font-size:clamp(22px,3vw,38px);color:var(--mist);display:block;margin-top:6px}
+.hero-p{font-size:17px;color:var(--mist);line-height:1.7;max-width:480px;margin-bottom:36px}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:48px}
+.btn{font-weight:600;border:2px solid;display:inline-flex;align-items:center;gap:9px;transition:all .2s;white-space:nowrap;letter-spacing:.01em}
+.btn-rust{background:var(--rust);border-color:var(--rust);color:#fff}.btn-rust:hover{background:transparent;color:var(--rust)}
+.btn-ghost{background:transparent;border-color:rgba(245,240,232,.2);color:var(--mist)}.btn-ghost:hover{border-color:var(--salt);color:var(--salt)}
+.btn-steel{background:var(--steel);border-color:var(--steel);color:#fff}.btn-steel:hover{background:transparent;color:var(--steel)}
+.btn-lg{font-size:15px;padding:13px 28px}
+.btn-md{font-size:13px;padding:10px 20px}
+.btn-sm{font-size:12px;padding:7px 15px}
+.btn:disabled{opacity:.5;pointer-events:none}
+.hero-kpi{display:none}
+.hk{display:flex;flex-direction:column;padding-right:20px}
+.hk-n{font-family:'Lora',serif;font-size:28px;font-weight:700;color:var(--salt)}
+.hk-n.r{color:var(--red)}.hk-n.g{color:var(--green)}.hk-n.b{color:var(--steel)}.hk-n.o{color:var(--rust)}
+.hk-l{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--mist);text-transform:uppercase;letter-spacing:.06em;margin-top:3px}
+
+/* ══ HERO NETWORK VIZ ══ */
+.hero-vis{display:flex;align-items:center;justify-content:center;position:relative}
+.prob-sec,.hiw-sec,.kn-sec,.impact-sec,.tech-strip{display:none}
+.hero-in{text-align:left}
+.hero-p{max-width:560px}
+.hsvg{width:100%;max-width:480px;height:auto;filter:drop-shadow(0 8px 32px rgba(0,0,0,.4))}
+@keyframes sonarPulse{0%{opacity:.7;transform:scale(1)}100%{opacity:0;transform:scale(3)}}
+@keyframes sonarPulse2{0%{opacity:.5;transform:scale(1)}100%{opacity:0;transform:scale(2.2)}}
+@keyframes boatDrift{0%,100%{transform:translate(0,0)}25%{transform:translate(1px,-2px)}50%{transform:translate(-1px,1px)}75%{transform:translate(2px,0px)}}
+@keyframes signalPkt{0%{offset-distance:0%;opacity:1}90%{opacity:1}100%{offset-distance:100%;opacity:0}}
+.sr1{animation:sonarPulse 2s ease-out infinite;transform-origin:100px 150px}
+.sr2{animation:sonarPulse 2s ease-out .7s infinite;transform-origin:100px 150px}
+.b-drift{animation:boatDrift 5s ease-in-out infinite}
+.b-drift2{animation:boatDrift 4s ease-in-out 1s infinite}
+.b-drift3{animation:boatDrift 6s ease-in-out 2s infinite}
+.spkt{animation:signalPkt 3s linear infinite;offset-path:path('M100,150 L205,198 L385,192');offset-rotate:0deg}
+.spkt2{animation:signalPkt 3s linear 1.5s infinite;offset-path:path('M100,150 L205,198 L385,192');offset-rotate:0deg}
+
+/* ══ PROBLEM SECTION ══ */
+.prob-sec{background:var(--charcoal);padding:80px 0;border-top:1px solid rgba(245,240,232,.07)}
+.container{max-width:1200px;margin:0 auto;padding:0 40px}
+.sec-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--rust);text-transform:uppercase;letter-spacing:.14em;display:block;margin-bottom:16px}
+.sec-h2{font-family:'Lora',serif;font-size:clamp(26px,3.5vw,42px);color:var(--salt);margin-bottom:12px;line-height:1.15}
+.sec-p{font-size:16px;color:var(--mist);max-width:560px;line-height:1.7}
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:rgba(245,240,232,.06);margin-top:48px}
+.pc{background:var(--navy);padding:36px 28px;position:relative;overflow:hidden}
+.pc::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--rust);transform:scaleX(0);transition:transform .4s ease;transform-origin:left}
+.pc:hover::after{transform:scaleX(1)}
+.pc-n{font-family:'Lora',serif;font-size:52px;font-weight:700;color:var(--rust);line-height:1;margin-bottom:8px}
+.pc-l{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--mist);text-transform:uppercase;margin-bottom:10px;letter-spacing:.06em}
+.pc-d{font-size:13px;color:var(--mist);line-height:1.65}
+
+/* ══ HOW IT WORKS ══ */
+.hiw-sec{padding:80px 0}
+.steps{display:grid;grid-template-columns:repeat(6,1fr);gap:0;margin-top:56px;position:relative}
+.steps::before{content:'';position:absolute;top:22px;left:4%;right:4%;height:1px;background:rgba(196,82,26,.18);z-index:0}
+.step{display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 8px;position:relative;z-index:1}
+.sdot{width:44px;height:44px;border:2px solid var(--rust);background:var(--navy);display:flex;align-items:center;justify-content:center;margin-bottom:16px;position:relative;transition:all .3s}
+.sdot:hover{background:var(--rust);color:#fff}
+.sn{font-family:'Lora',serif;font-size:14px;font-weight:700;color:var(--rust)}
+.sicon{font-size:16px;margin-bottom:8px}
+.slbl{font-family:'Lora',serif;font-size:13px;font-weight:700;color:var(--salt);margin-bottom:4px}
+.ssub{font-size:11px;color:var(--mist);line-height:1.45}
+
+/* ══ LIVE STATS ══ */
+.ls-sec{background:var(--charcoal);padding:80px 0;border-top:1px solid rgba(245,240,232,.07)}
+.sgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;background:rgba(245,240,232,.06);margin:40px 0 32px}
+.sc{background:var(--panel);padding:28px 22px;position:relative}
+.sc-n{font-family:'Lora',serif;font-size:44px;font-weight:700;color:var(--salt);line-height:1;margin-bottom:6px;transition:all .4s}
+.sc-n.r{color:var(--red)}.sc-n.g{color:var(--green)}.sc-n.b{color:var(--steel)}.sc-n.o{color:var(--rust)}
+.sc-l{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--mist);text-transform:uppercase;letter-spacing:.06em}
+.sc-delta{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green);margin-top:4px}
+
+/* ══ KANNADA SECTION ══ */
+.kn-sec{padding:80px 0;border-top:1px solid rgba(245,240,232,.07);background:var(--navy)}
+.kn-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;margin-top:16px}
+.kn-text h2{font-family:'Lora',serif;font-size:clamp(28px,3vw,44px);color:var(--salt);margin-bottom:16px;line-height:1.2}
+.kn-text h2 .kn{font-style:italic;color:var(--rust)}
+.kn-text p{font-size:15px;color:var(--mist);line-height:1.75;margin-bottom:14px}
+.kn-stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:28px}
+.ks{background:var(--charcoal);border:1px solid rgba(245,240,232,.08);padding:18px;border-left:3px solid var(--rust)}
+.ks-n{font-family:'Lora',serif;font-size:26px;font-weight:700;color:var(--rust)}
+.ks-l{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--mist);text-transform:uppercase;margin-top:3px}
+.kn-quotes{display:flex;flex-direction:column;gap:16px}
+.kq{background:var(--charcoal);border:1px solid rgba(245,240,232,.08);padding:22px;border-left:3px solid var(--steel);position:relative}
+.kq::before{content:'"';font-family:'Lora',serif;font-size:48px;color:var(--steel);opacity:.3;position:absolute;top:8px;left:16px;line-height:1}
+.kq-text{font-family:'Inter',sans-serif;font-style:italic;font-size:14px;color:var(--salt);line-height:1.7;padding-left:20px}
+.kq-kn{font-size:12px;color:var(--mist);margin-top:6px;padding-left:20px}
+.kq-author{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--rust);margin-top:10px;text-transform:uppercase;padding-left:20px}
+
+/* ══ TECH STRIP ══ */
+.tech-strip{background:var(--charcoal);border-top:1px solid rgba(245,240,232,.07);padding:20px 0}
+.tech-inner{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;padding:0 40px}
+.tech-tag{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--mist);padding:5px 12px;border:1px solid rgba(245,240,232,.08);transition:all .2s}
+.tech-tag:hover{border-color:var(--rust);color:var(--rust)}
+
+/* ══ IMPACT ══ */
+.impact-sec{padding:80px 0;border-top:1px solid rgba(245,240,232,.07);text-align:center}
+.impact-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:rgba(245,240,232,.06);margin:48px 0}
+.ig{background:var(--charcoal);padding:40px 28px;display:flex;flex-direction:column;align-items:center}
+.ig-n{font-family:'Lora',serif;font-size:56px;font-weight:700;color:var(--rust);line-height:1;margin-bottom:8px}
+.ig-l{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mist);text-transform:uppercase;letter-spacing:.08em}
+.ig-sub{font-size:13px;color:var(--mist);margin-top:8px;line-height:1.5}
+
+.home-panel{border-top:1px solid rgba(245,240,232,.07);background:var(--charcoal);padding:34px 0}
+.home-grid{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:1px;background:rgba(245,240,232,.07)}
+.home-card{background:var(--panel);padding:24px;min-height:132px}
+.home-card h3{font-family:'Lora',serif;font-size:20px;color:var(--salt);margin-bottom:8px}
+.home-card p{font-size:13px;color:var(--mist);line-height:1.65}
+.home-card .mono{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--rust);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+@media(max-width:768px){.home-grid{grid-template-columns:1fr}.home-panel{padding:24px 0}}
+/* ══ FOOTER ══ */
+footer{background:var(--charcoal);border-top:1px solid rgba(245,240,232,.07);padding:56px 0 0}
+.fg{display:grid;grid-template-columns:1.8fr 1fr 1fr 1fr;gap:48px;margin-bottom:40px}
+.fb-n{font-family:'Lora',serif;font-weight:800;font-size:22px;margin-bottom:8px}
+.fb-kn{font-size:12px;color:var(--rust);font-style:italic;margin-bottom:10px}
+.fb-d{font-size:13px;color:var(--mist);line-height:1.65}
+.fh{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--rust);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px}
+.fl{list-style:none}.fl li{margin-bottom:8px}.fl a{font-size:13px;color:var(--mist);transition:color .2s}.fl a:hover{color:var(--salt)}
+.fbar{border-top:1px solid rgba(245,240,232,.06);padding:16px 0;display:flex;justify-content:space-between;align-items:center}
+.fcp{font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(143,168,184,.4)}
+.fbadge{font-family:'JetBrains Mono',monospace;font-size:9px;padding:3px 8px;border:1px solid rgba(30,122,78,.4);color:var(--green)}
+
+/* ══ MOBILE STYLES ══ */
+@media(max-width:768px){
+  #dnav{display:none!important}
+  #mnav{display:flex}
+  #mobnav{display:flex}
+  #mob-sos{display:flex}
+  body{padding-bottom:64px}
+
+  .hero{min-height:auto;padding:0}
+  .hero-in{grid-template-columns:1fr;gap:32px;padding:32px 20px 40px}
+  .hero-h1{font-size:32px}
+  .hero-h1 .kn{font-size:20px}
+  .hero-p{font-size:15px;margin-bottom:24px}
+  .hero-btns{gap:10px}
+  .btn-lg{font-size:14px;padding:12px 22px}
+  .hero-kpi{grid-template-columns:1fr 1fr;gap:1px}
+  .hk{padding:12px 0 4px}
+  .hk-n{font-size:22px}
+  .hero-vis{display:none!important}
+
+  .pgrid{grid-template-columns:1fr;gap:2px}
+  .pc-n{font-size:40px}
+  .prob-sec{padding:56px 0}
+
+  .steps{grid-template-columns:repeat(3,1fr);gap:16px}
+  .steps::before{display:none}
+  .step{padding:12px;background:var(--charcoal);border:1px solid rgba(245,240,232,.07)}
+  .sdot{width:36px;height:36px}
+  .hiw-sec{padding:56px 0}
+
+  .sgrid{grid-template-columns:1fr 1fr}
+  .sc-n{font-size:32px}
+  .ls-sec{padding:56px 0}
+
+  .kn-grid{grid-template-columns:1fr;gap:32px}
+  .kn-sec{padding:56px 0}
+
+  .impact-grid{grid-template-columns:1fr}
+  .ig-n{font-size:42px}
+  .impact-sec{padding:56px 0}
+
+  .fg{grid-template-columns:1fr 1fr;gap:28px}
+  .container{padding:0 20px}
+
+  .tech-inner{padding:0 20px}
+}
+@media(min-width:769px){
+  #mnav{display:none!important}
+  #mobnav{display:none!important}
+  #mob-sos{display:none!important}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ DESKTOP NAV ══ -->
+<div id="dnav">
+  <div class="nb">TARANG</div>
+  <div class="nls">
+    <a class="nl on" href="/">Home</a>
+    <a class="nl" href="/dashboard">Dashboard</a>
+    <a class="nl" href="/how-it-works">How It Works</a>
+    <a class="nl" href="/analytics">Analytics</a>
+    <a class="nl" href="/vessels">Vessels</a>
+  </div>
+  <div class="nr">
+    <div id="dnav-clk"></div>
+    <a class="ncta" href="/dashboard">Control Room →</a>
+  </div>
+</div>
+
+<!-- ══ MOBILE HEADER ══ -->
+<div id="mnav">
+  <div class="mnav-brand">TARANG</div>
+  <div class="mnav-badge">🟢 LIVE</div>
+</div>
+
+<!-- ══ LIVE TICKER ══ -->
+<div id="ticker-wrap">
+  <div class="ticker-inner" id="ticker">
+    <span class="tick-item"><span class="tick-dot td-red"></span>Ananya Hegde — Capsize Alert — 12.3 km offshore</span><span class="tick-sep">·</span>
+    <span class="tick-item"><span class="tick-dot td-green"></span>Kiran Shetty — All Systems Nominal</span><span class="tick-sep">·</span>
+    <span class="tick-item"><span class="tick-dot td-amber"></span>Prakash Naik — Battery 23% — Low Alert</span><span class="tick-sep">·</span>
+    <span class="tick-item"><span class="tick-dot td-red"></span>Meera Gowda — Drift Detected — 8.7 km</span><span class="tick-sep">·</span>
+    <span class="tick-item"><span class="tick-dot td-green"></span>Nandini Rao — Active — GPS Lock</span><span class="tick-sep">·</span>
+    <span class="tick-item"><span class="tick-dot td-green"></span>ICG FPV C-156 — On Patrol — Mangaluru Coast</span><span class="tick-sep">·</span>
+    <!-- duplicate for seamless loop -->
+    <span class="tick-item"><span class="tick-dot td-red"></span>Ananya Hegde — Capsize Alert — 12.3 km offshore</span><span class="tick-sep">·</span>
+    <span class="tick-item"><span class="tick-dot td-green"></span>Kiran Shetty — All Systems Nominal</span><span class="tick-sep">·</span>
+    <span class="tick-item"><span class="tick-dot td-amber"></span>Prakash Naik — Battery 23% — Low Alert</span><span class="tick-sep">·</span>
+    <span class="tick-item"><span class="tick-dot td-red"></span>Meera Gowda — Drift Detected — 8.7 km</span><span class="tick-sep">·</span>
+    <span class="tick-item"><span class="tick-dot td-green"></span>Nandini Rao — Active — GPS Lock</span><span class="tick-sep">·</span>
+    <span class="tick-item"><span class="tick-dot td-green"></span>ICG FPV C-156 — On Patrol — Mangaluru Coast</span><span class="tick-sep">·</span>
+  </div>
+</div>
+
+<!-- ══ HERO ══ -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-in">
+    <div>
+      <div class="hero-eyebrow">
+        <span class="echip">Deploy or Die · Coastal Innovation Hackathon</span>
+        <span class="echip live" id="live-chip">System Online</span>
+      </div>
+      <h1 class="hero-h1">
+        SOS from the Sea.<br><em>Delivered Without</em><br>the Internet.
+        <span class="kn">ಸಮುದ್ರದಿಂದ ಉಳಿವು.</span>
+      </h1>
+      <p class="hero-p">A focused rescue operations project for Karnataka fishing communities: detect distress, alert the control room, dispatch support, and track rescue progress on one clear dashboard.</p>
+      <div class="hero-btns">
+        <a href="/dashboard" class="btn btn-rust btn-lg">Open Control Room →</a>
+        <a href="/how-it-works" class="btn btn-ghost btn-lg">How It Works</a>
+      </div>
+    </div>
+    <!-- ══ NETWORK VISUALIZATION SVG ══ -->
+    <div class="hero-vis">
+      <svg class="hsvg" viewBox="0 0 500 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Ocean gradient -->
+        <defs>
+          <radialGradient id="og" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#0F2035"/>
+            <stop offset="100%" stop-color="#060d18"/>
+          </radialGradient>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="2" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <rect width="500" height="400" fill="url(#og)" rx="4"/>
+        <!-- Subtle grid -->
+        <g opacity=".04" stroke="#F5F0E8" stroke-width=".5">
+          <line x1="0" y1="80" x2="500" y2="80"/><line x1="0" y1="160" x2="500" y2="160"/>
+          <line x1="0" y1="240" x2="500" y2="240"/><line x1="0" y1="320" x2="500" y2="320"/>
+          <line x1="100" y1="0" x2="100" y2="400"/><line x1="200" y1="0" x2="200" y2="400"/>
+          <line x1="300" y1="0" x2="300" y2="400"/><line x1="400" y1="0" x2="400" y2="400"/>
+        </g>
+
+        <!-- Shore station (right) -->
+        <rect x="410" y="160" width="72" height="80" fill="#1C2B3A" stroke="rgba(245,240,232,.12)" stroke-width="1"/>
+        <rect x="420" y="128" width="52" height="35" fill="#1E7A4E" stroke="#F5F0E8" stroke-width="1"/>
+        <line x1="446" y1="100" x2="446" y2="128" stroke="#F5F0E8" stroke-width="2"/>
+        <line x1="430" y1="112" x2="446" y2="100" stroke="#8FA8B8" stroke-width="1"/>
+        <line x1="462" y1="112" x2="446" y2="100" stroke="#8FA8B8" stroke-width="1"/>
+        <circle cx="446" cy="98" r="4" fill="#C4521A"/>
+        <!-- Shore label -->
+        <text x="446" y="258" fill="#8FA8B8" font-size="9" text-anchor="middle" font-family="'JetBrains Mono',monospace" letter-spacing="1">SHORE BASE</text>
+        <text x="446" y="270" fill="rgba(143,168,184,.5)" font-size="7" text-anchor="middle" font-family="'JetBrains Mono',monospace">MANGALURU</text>
+
+        <!-- Mesh connection lines (static) -->
+        <g opacity=".25" stroke="#2E6B8A" stroke-width=".8" stroke-dasharray="4 8">
+          <line x1="100" y1="150" x2="210" y2="195"/>
+          <line x1="210" y1="195" x2="395" y2="192"/>
+          <line x1="165" y1="275" x2="210" y2="195"/>
+          <line x1="75" y1="270" x2="165" y2="275"/>
+          <line x1="290" y1="115" x2="395" y2="192"/>
+          <line x1="210" y1="195" x2="290" y2="115"/>
+        </g>
+
+        <!-- SOS signal path (highlighted) -->
+        <polyline points="100,150 210,195 395,192" fill="none" stroke="#C4521A" stroke-width="1.2" stroke-dasharray="4 6" opacity=".6"/>
+
+        <!-- SOS Boat (center-left) with pulse rings -->
+        <g class="b-drift">
+          <circle class="sr1" cx="100" cy="150" r="18" fill="none" stroke="#C0392B" stroke-width="1.5" opacity=".7"/>
+          <circle class="sr2" cx="100" cy="150" r="18" fill="none" stroke="#C0392B" stroke-width="1" opacity=".4"/>
+          <!-- Boat hull -->
+          <path d="M86 154 L100 134 L114 154 Z" fill="#C4521A" stroke="#F5F0E8" stroke-width="1.2"/>
+          <rect x="89" y="151" width="22" height="7" fill="#C4521A" stroke="#F5F0E8" stroke-width="1"/>
+          <line x1="100" y1="134" x2="100" y2="142" stroke="#F5F0E8" stroke-width="1" opacity=".7"/>
+          <!-- SOS label -->
+          <rect x="84" y="120" width="32" height="12" fill="#C0392B" rx="0"/>
+          <text x="100" y="129" fill="#fff" font-size="8" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="700">SOS</text>
+          <text x="100" y="173" fill="#C0392B" font-size="7.5" text-anchor="middle" font-family="'JetBrains Mono',monospace">VES-001</text>
+        </g>
+
+        <!-- Relay Boat (center) -->
+        <g class="b-drift2">
+          <circle cx="210" cy="195" r="5" fill="#B8860B" opacity=".8"/>
+          <path d="M198 198 L210 182 L222 198 Z" fill="#2E6B8A" stroke="#F5F0E8" stroke-width="1"/>
+          <rect x="201" y="196" width="18" height="6" fill="#2E6B8A" stroke="#F5F0E8" stroke-width=".8"/>
+          <text x="210" y="212" fill="#8FA8B8" font-size="7" text-anchor="middle" font-family="'JetBrains Mono',monospace">RELAY</text>
+        </g>
+
+        <!-- Boat 3 (bottom-left) -->
+        <g class="b-drift3">
+          <path d="M153 278 L165 262 L177 278 Z" fill="#2E6B8A" stroke="#F5F0E8" stroke-width=".9"/>
+          <rect x="156" y="276" width="18" height="6" fill="#2E6B8A" stroke="#F5F0E8" stroke-width=".8"/>
+          <text x="165" y="292" fill="#8FA8B8" font-size="7" text-anchor="middle" font-family="'JetBrains Mono',monospace">VES-003</text>
+        </g>
+
+        <!-- Boat 4 (top-center) -->
+        <g class="b-drift">
+          <path d="M278 118 L290 102 L302 118 Z" fill="#2E6B8A" stroke="#F5F0E8" stroke-width=".9"/>
+          <rect x="281" y="116" width="18" height="6" fill="#2E6B8A" stroke="#F5F0E8" stroke-width=".8"/>
+          <text x="290" y="132" fill="#8FA8B8" font-size="7" text-anchor="middle" font-family="'JetBrains Mono',monospace">VES-004</text>
+        </g>
+
+        <!-- Boat 5 (bottom-left) -->
+        <g class="b-drift2">
+          <path d="M60 268 L73 252 L86 268 Z" fill="#2E6B8A" stroke="#F5F0E8" stroke-width=".9"/>
+          <rect x="63" y="266" width="18" height="6" fill="#2E6B8A" stroke="#F5F0E8" stroke-width=".8"/>
+          <text x="73" y="282" fill="#8FA8B8" font-size="7" text-anchor="middle" font-family="'JetBrains Mono',monospace">VES-005</text>
+        </g>
+
+        <!-- Signal packet animation (SOS → relay → shore) -->
+        <circle class="spkt" r="5" fill="#C4521A"/>
+        <circle class="spkt2" r="5" fill="#C4521A"/>
+
+        <!-- Distance label -->
+        <line x1="60" y1="360" x2="400" y2="360" stroke="rgba(143,168,184,.2)" stroke-width=".5"/>
+        <text x="230" y="373" fill="rgba(143,168,184,.5)" font-size="9" text-anchor="middle" font-family="'JetBrains Mono',monospace">← 20 km offshore range →</text>
+      </svg>
+    </div>
+  </div>
+</section>
+<section class="home-panel">
+  <div class="container">
+    <div class="home-grid">
+      <div class="home-card">
+        <div class="mono">Operations First</div>
+        <h3>One place to detect, decide, and dispatch.</h3>
+        <p>TARANG keeps the operator focused on active distress profiles, map location, rescue actions, and completion status without extra demo clutter.</p>
+      </div>
+      <div class="home-card">
+        <div class="mono">Live Dashboard</div>
+        <h3>Profiles speak, map responds.</h3>
+        <p>Opening a profile plays a unique distress voice. Dispatch actions trigger clear sounds and move the rescue flow on the map.</p>
+      </div>
+      <div class="home-card">
+        <div class="mono">Project</div>
+        <h3>Deploy or Die · Coastal Innovation Hackathon</h3>
+        <p>Built as a focused coastal rescue operations project for Karnataka, with Kannada and English operator experience.</p>
+      </div>
+    </div>
+  </div>
+</section><!-- ══ FOOTER ══ -->
+<footer>
+  <div class="container">
+    <div class="fg">
+      <div>
+        <div class="fb-n">TARANG</div>
+        <div class="fb-kn">ತರಂಗ — ಸಮುದ್ರ ರಕ್ಷಣಾ ಕಾರ್ಯಾಚರಣೆ</div>
+        <p class="fb-d">A clean coastal rescue operations dashboard for Coastal Innovation Hackathon, built by Deploy or Die.</p>
+      </div>
+      <div>
+        <div class="fh">Navigate</div>
+        <ul class="fl">
+          <li><a href="/">Home</a></li><li><a href="/dashboard">Dashboard</a></li>
+          <li><a href="/how-it-works">How It Works</a></li><li><a href="/analytics">Stats</a></li>
+          <li><a href="/vessels">Fleet</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="fh">Team</div>
+        <ul class="fl">
+          <li><a href="#">Deploy or Die</a></li>
+          <li><a href="#">Coastal Innovation Hackathon</a></li>
+          <li><a href="#">Karnataka</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="fbar">
+      <span class="fcp">© 2026 Deploy or Die — Coastal Innovation Hackathon</span>
+      <span class="fbadge">TARANG · Live</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ══ MOBILE BOTTOM NAV ══ -->
+<div id="mobnav">
+  <a class="mni on" href="/">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span>Home</span>
+  </a>
+  <a class="mni" href="/dashboard">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    <span>Dashboard</span>
+  </a>
+  <a class="mni" href="/vessels">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 20h20M6 20V8l6-5 6 5v12"/><path d="M12 3v5"/></svg>
+    <span>Fleet</span>
+  </a>
+  <a class="mni" href="/analytics">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    <span>Analytics</span>
+  </a>
+</div>
+
+<!-- ══ MOBILE FLOATING SOS ══ -->
+<a href="/dashboard" id="mob-sos" title="Open Dashboard">
+  <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+  <span>SOS</span>
+</a>
+
+<script>
+/* Clock (desktop only) */
+setInterval(()=>{const e=document.getElementById('dnav-clk');if(e)e.textContent=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'})+' IST';},1000);
+
+/* Load live stats */
+async function loadStats(){
+  try{
+    const [ar,vr]=await Promise.all([
+      fetch(`${window.location.origin}/api/alerts?limit=100`),
+      fetch(`${window.location.origin}/api/vessels`)
+    ]);
+    const [alerts,vessels]=await Promise.all([ar.json(),vr.json()]);
+    const active=alerts.filter(a=>(a.status||'active')==='active').length;
+    const triaged=alerts.filter(a=>(a.status||'active')==='triaged').length;
+    const dispatched=alerts.filter(a=>(a.status||'active')==='dispatched').length;
+    const resolved=alerts.filter(a=>(a.status||'active')==='resolved').length;
+    const live=active+triaged+dispatched;
+    animNum('sc-total',live);
+    animNum('sc-active',active);
+    animNum('sc-resolved',resolved);
+    animNum('sc-vessels',vessels.length||5);
+    animNum('hk-active',active);
+    animNum('hk-total',live);
+    if(active>0){document.getElementById('live-chip').textContent='🔴 '+active+' Active SOS';}
+  }catch{
+    /* Fallback demo values */
+    ['sc-total','hk-total'].forEach(id=>animNum(id,3));
+    ['sc-active','hk-active'].forEach(id=>animNum(id,3));
+    animNum('sc-resolved',2);animNum('sc-vessels',5);
+  }
+}
+function animNum(id,target){
+  const el=document.getElementById(id);if(!el||isNaN(target)) return;
+  const cur=parseInt(el.textContent)||0;if(cur===target) return;
+  let i=0;const steps=12;const inc=(target-cur)/steps;
+  const t=setInterval(()=>{i++;el.textContent=Math.round(cur+inc*i);if(i>=steps){el.textContent=target;clearInterval(t);}},30);
+}
+loadStats();
+setInterval(loadStats,30000);
+
+</script>
+</body>
+</html>

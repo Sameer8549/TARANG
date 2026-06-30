@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="kn">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Analytics — TARANG Maritime Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,700;0,800;1,400;1,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:#0A1628;color:#F5F0E8;line-height:1.6}
+a{color:inherit;text-decoration:none}
+button{font-family:'Inter',sans-serif;cursor:pointer}
+:root{--navy:#0A1628;--salt:#F5F0E8;--rust:#C4521A;--steel:#2E6B8A;--charcoal:#1C2B3A;--mist:#8FA8B8;--green:#1E7A4E;--red:#C0392B;--amber:#B8860B;--panel:#111E30}
+
+/* ══ DESKTOP NAV ══ */
+#dnav{position:sticky;top:0;z-index:300;height:64px;background:var(--charcoal);border-bottom:2px solid rgba(196,82,26,.3);display:flex;align-items:center;padding:0 24px}
+.nb{font-family:'Lora',serif;font-weight:800;font-size:22px;letter-spacing:.06em;color:var(--salt);margin-right:28px}
+.nls{display:flex;gap:2px}
+.nl{font-size:13px;font-weight:500;color:var(--mist);padding:6px 13px;border-bottom:2px solid transparent;transition:all .2s}
+.nl:hover{color:var(--salt)}.nl.on{color:var(--salt);border-bottom-color:var(--rust)}
+.nr{margin-left:auto;display:flex;align-items:center;gap:14px}
+#dnav-clk{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mist)}
+.ncta{font-size:13px;font-weight:600;padding:8px 16px;background:var(--rust);border:2px solid var(--rust);color:#fff;transition:all .2s}
+.ncta:hover{background:transparent;color:var(--rust)}
+
+/* ══ MOBILE HEADER ══ */
+#mnav{display:none;position:sticky;top:0;z-index:300;height:56px;background:var(--charcoal);border-bottom:1px solid rgba(196,82,26,.3);align-items:center;justify-content:space-between;padding:0 20px}
+.mnav-brand{font-family:'Lora',serif;font-weight:800;font-size:19px;color:var(--salt)}
+.mnav-sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--mist)}
+
+/* ══ MOBILE BOTTOM NAV ══ */
+#mobnav{display:none;position:fixed;bottom:0;left:0;right:0;height:64px;background:var(--charcoal);border-top:1px solid rgba(245,240,232,.1);z-index:300;align-items:stretch}
+.mni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--mist);transition:color .2s;border:none;background:none;padding:8px 4px;cursor:pointer;text-decoration:none}
+.mni.on{color:var(--rust)}.mni svg{width:22px;height:22px;flex-shrink:0}
+.mni span{font-family:'JetBrains Mono',monospace;font-size:9px;text-transform:uppercase}
+
+.container{max-width:1200px;margin:0 auto;padding:0 40px}
+.label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--rust);text-transform:uppercase;letter-spacing:.12em;display:block;margin-bottom:14px}
+
+/* HERO */
+.page-hero{background:var(--charcoal);border-bottom:1px solid rgba(245,240,232,.08);padding:52px 0}
+.ph-row{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:20px}
+.page-hero h1{font-family:'Lora',serif;font-size:40px;color:var(--salt);margin-bottom:6px}
+.page-hero .kn{font-size:18px;color:var(--rust);font-style:italic;display:block;margin-bottom:8px;font-family:'Lora',serif}
+.page-hero p{color:var(--mist);font-size:15px}
+.ref-bar{display:flex;align-items:center;gap:12px}
+.rb-ts{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mist)}
+.btn-ref{font-size:12px;font-weight:600;padding:7px 14px;background:transparent;border:1px solid rgba(245,240,232,.15);color:var(--mist);transition:all .2s}
+.btn-ref:hover{border-color:var(--salt);color:var(--salt)}
+
+/* KPI STRIP */
+.kpi-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;background:rgba(245,240,232,.06);margin:40px 0}
+.ks{background:var(--charcoal);padding:24px 20px;position:relative;overflow:hidden}
+.ks::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--rust);transform:scaleX(0);transition:transform .4s;transform-origin:left}
+.ks:hover::after{transform:scaleX(1)}
+.ks-n{font-family:'Lora',serif;font-size:40px;font-weight:700;line-height:1;margin-bottom:5px;transition:all .4s}
+.ks-n.r{color:var(--red)}.ks-n.g{color:var(--green)}.ks-n.b{color:var(--steel)}.ks-n.o{color:var(--rust)}
+.ks-l{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--mist);text-transform:uppercase;letter-spacing:.06em}
+.ks-delta{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green);margin-top:4px}
+
+/* GRID LAYOUT */
+.an-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:40px}
+.an-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;margin-bottom:40px}
+.card{background:var(--charcoal);border:1px solid rgba(245,240,232,.08);padding:24px;transition:border-color .2s}
+.card:hover{border-color:rgba(196,82,26,.3)}
+.card-ttl{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--rust);text-transform:uppercase;letter-spacing:.08em;margin-bottom:20px;font-weight:700}
+
+/* BAR CHARTS */
+.bar-row{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.bar-lbl{width:120px;font-size:12px;color:var(--mist);font-family:'JetBrains Mono',monospace;flex-shrink:0;font-size:10px}
+.bar-track{flex:1;height:20px;background:rgba(10,22,40,.6);border:1px solid rgba(245,240,232,.06);position:relative;overflow:hidden}
+.bar-fill{height:100%;position:absolute;top:0;left:0;transition:width 1s ease}
+.bar-fill.red{background:var(--red)}.bar-fill.rust{background:var(--rust)}.bar-fill.amber{background:var(--amber)}
+.bar-fill.green{background:var(--green)}.bar-fill.steel{background:var(--steel)}.bar-fill.mist{background:var(--mist)}
+.bar-val{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--salt);width:28px;text-align:right;flex-shrink:0}
+
+/* TIMELINE CHART (canvas-free CSS bars) */
+.tchart{display:flex;align-items:flex-end;gap:4px;height:100px;padding-top:10px}
+.tbar{flex:1;background:var(--rust);opacity:.6;transition:all .3s;cursor:pointer;position:relative;min-height:4px}
+.tbar:hover{opacity:1}.tbar.active{background:var(--red);opacity:1}
+.tbar-tip{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--charcoal);border:1px solid rgba(245,240,232,.12);padding:4px 8px;font-family:'JetBrains Mono',monospace;font-size:9px;white-space:nowrap;display:none}
+.tbar:hover .tbar-tip{display:block}
+.tchart-labels{display:flex;gap:4px;margin-top:6px}
+.tbl{flex:1;font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--mist);text-align:center;text-transform:uppercase}
+
+/* SEVERITY DONUT (pure CSS) */
+.donut-wrap{display:flex;align-items:center;gap:28px;margin-top:12px}
+.donut{width:100px;height:100px;border-radius:50%;flex-shrink:0;position:relative}
+.donut-hole{position:absolute;top:20%;left:20%;right:20%;bottom:20%;border-radius:50%;background:var(--charcoal);display:flex;align-items:center;justify-content:center;flex-direction:column}
+.donut-n{font-family:'Lora',serif;font-size:18px;font-weight:700;color:var(--salt)}
+.donut-l{font-family:'JetBrains Mono',monospace;font-size:7px;color:var(--mist);text-transform:uppercase}
+.donut-legend{flex:1;display:flex;flex-direction:column;gap:6px}
+.dl-row{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--mist)}
+.dl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.dl-n{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--salt);margin-left:auto}
+
+/* ALERT TABLE */
+.sec-title{font-family:'Lora',serif;font-size:26px;color:var(--salt);margin-bottom:20px;padding-bottom:8px;border-bottom:1px solid rgba(245,240,232,.08)}
+.table-wrap{overflow-x:auto;margin-bottom:40px}
+.atable{width:100%;border-collapse:collapse;min-width:700px}
+.atable th{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--rust);text-transform:uppercase;letter-spacing:.06em;padding:12px 16px;border-bottom:2px solid var(--rust);text-align:left}
+.atable td{font-size:12px;color:var(--mist);padding:11px 16px;border-bottom:1px solid rgba(245,240,232,.05)}
+.atable td.id{font-family:'JetBrains Mono',monospace;font-size:10px}
+.atable td.name{color:var(--salt);font-weight:600}
+.atable tr:hover td{background:rgba(245,240,232,.02)}
+.sev{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;padding:2px 6px;border:1px solid;text-transform:uppercase}
+.sev-critical{color:var(--red);border-color:var(--red)}.sev-high{color:var(--rust);border-color:var(--rust)}
+.sev-medium{color:var(--amber);border-color:var(--amber)}.sev-low{color:var(--green);border-color:var(--green)}
+.chip{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;padding:2px 6px;border:1px solid;text-transform:uppercase}
+.chip-active{color:var(--red);border-color:var(--red)}.chip-triaged{color:var(--amber);border-color:var(--amber)}
+.chip-dispatched{color:var(--steel);border-color:var(--steel)}.chip-resolved{color:var(--green);border-color:var(--green)}
+
+/* LIVE FEED */
+.feed-row{display:flex;align-items:flex-start;gap:12px;padding:11px 0;border-bottom:1px solid rgba(245,240,232,.05);animation:feedIn .4s ease}
+@keyframes feedIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.feed-ic{font-size:16px;flex-shrink:0;margin-top:2px}
+.feed-t{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--rust);margin-bottom:2px}
+.feed-m{font-size:12px;color:var(--mist);line-height:1.5}
+
+/* FOOTER */
+footer{background:var(--charcoal);border-top:1px solid rgba(245,240,232,.07);padding:40px 0 0}
+.fg{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;margin-bottom:36px}
+.fb-n{font-family:'Lora',serif;font-weight:800;font-size:20px;margin-bottom:7px}
+.fb-d{font-size:13px;color:var(--mist);line-height:1.65}
+.fh{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--rust);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px}
+.fl{list-style:none}.fl li{margin-bottom:7px}.fl a{font-size:13px;color:var(--mist);transition:color .2s}.fl a:hover{color:var(--salt)}
+.fbar{border-top:1px solid rgba(245,240,232,.06);padding:14px 0;display:flex;justify-content:space-between}
+.fcp{font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(143,168,184,.4)}
+
+/* ══ MOBILE ══ */
+@media(max-width:768px){
+  #dnav{display:none!important}
+  #mnav{display:flex}
+  #mobnav{display:flex}
+  body{padding-bottom:64px}
+  .container{padding:0 16px}
+  .kpi-strip{grid-template-columns:1fr 1fr;gap:2px}
+  .ks-n{font-size:30px}
+  .an-grid,.an-grid-3{grid-template-columns:1fr}
+  .page-hero{padding:32px 0}
+  .page-hero h1{font-size:26px}
+  .ph-row{flex-direction:column;align-items:flex-start}
+  .fg{grid-template-columns:1fr}
+  .atable{min-width:500px}
+  .bar-lbl{width:80px}
+}
+@media(min-width:769px){
+  #mnav{display:none!important}
+  #mobnav{display:none!important}
+}
+</style>
+</head>
+<body>
+
+<div id="dnav">
+  <div class="nb">TARANG</div>
+  <div class="nls">
+    <a class="nl" href="/">Home</a>
+    <a class="nl" href="/dashboard">Dashboard</a>
+    <a class="nl" href="/how-it-works">How It Works</a>
+    <a class="nl on" href="/analytics">Analytics</a>
+    <a class="nl" href="/vessels">Vessels</a>
+  </div>
+  <div class="nr"><div id="dnav-clk"></div><a class="ncta" href="/dashboard">Control Room →</a></div>
+</div>
+
+<div id="mnav">
+  <div class="mnav-brand">TARANG · ವಿಶ್ಲೇಷಣೆ</div>
+  <div class="mnav-sub" id="mnav-ts">—</div>
+</div>
+
+<!-- HERO -->
+<div class="page-hero">
+  <div class="container">
+    <div class="ph-row">
+      <div>
+        <span class="label">ನೇರ ವಿಶ್ಲೇಷಣೆ — LIVE ANALYTICS</span>
+        <h1>Maritime Intelligence <span class="kn">ಸಮುದ್ರ ಮಾಹಿತಿ</span></h1>
+        <p>Real-time rescue system performance — Mangaluru coastal zone.</p>
+      </div>
+      <div class="ref-bar">
+        <div class="rb-ts">Updated: <span id="upd-ts">—</span></div>
+        <button class="btn-ref" onclick="load()">↻ Refresh</button>
+        <a href="/dashboard" style="font-size:12px;font-weight:600;padding:7px 14px;background:var(--rust);border:2px solid var(--rust);color:#fff;transition:all .2s">Dashboard →</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- KPI STRIP -->
+<div class="container">
+  <div class="kpi-strip">
+    <div class="ks"><div class="ks-n o" id="kpi-total">—</div><div class="ks-l">Live Queue</div></div>
+    <div class="ks"><div class="ks-n r" id="kpi-active">—</div><div class="ks-l">Active SOS</div><div class="ks-delta" id="kpi-active-d"></div></div>
+    <div class="ks"><div class="ks-n b" id="kpi-disp">—</div><div class="ks-l">Dispatched</div></div>
+    <div class="ks"><div class="ks-n g" id="kpi-res">—</div><div class="ks-l">Resolved</div><div class="ks-delta" id="kpi-res-rate"></div></div>
+  </div>
+
+  <!-- ROW 1: Severity + Type -->
+  <div class="an-grid">
+    <div class="card">
+      <div class="card-ttl">⚠ Alert Severity Breakdown</div>
+      <div class="bar-row"><div class="bar-lbl">Critical</div><div class="bar-track"><div class="bar-fill red" id="b-critical" style="width:0%"></div></div><div class="bar-val" id="n-critical">0</div></div>
+      <div class="bar-row"><div class="bar-lbl">High</div><div class="bar-track"><div class="bar-fill rust" id="b-high" style="width:0%"></div></div><div class="bar-val" id="n-high">0</div></div>
+      <div class="bar-row"><div class="bar-lbl">Medium</div><div class="bar-track"><div class="bar-fill amber" id="b-medium" style="width:0%"></div></div><div class="bar-val" id="n-medium">0</div></div>
+      <div class="bar-row"><div class="bar-lbl">Low</div><div class="bar-track"><div class="bar-fill green" id="b-low" style="width:0%"></div></div><div class="bar-val" id="n-low">0</div></div>
+    </div>
+    <div class="card">
+      <div class="card-ttl">📊 Alert Type Breakdown</div>
+      <div class="bar-row"><div class="bar-lbl">Manual SOS</div><div class="bar-track"><div class="bar-fill red" id="b-sos_manual" style="width:0%"></div></div><div class="bar-val" id="n-sos_manual">0</div></div>
+      <div class="bar-row"><div class="bar-lbl">Capsize</div><div class="bar-track"><div class="bar-fill rust" id="b-capsize" style="width:0%"></div></div><div class="bar-val" id="n-capsize">0</div></div>
+      <div class="bar-row"><div class="bar-lbl">Drift</div><div class="bar-track"><div class="bar-fill amber" id="b-drift" style="width:0%"></div></div><div class="bar-val" id="n-drift">0</div></div>
+      <div class="bar-row"><div class="bar-lbl">Engine Fail</div><div class="bar-track"><div class="bar-fill mist" id="b-engine_fail" style="width:0%"></div></div><div class="bar-val" id="n-engine_fail">0</div></div>
+      <div class="bar-row"><div class="bar-lbl">Medical</div><div class="bar-track"><div class="bar-fill steel" id="b-medical" style="width:0%"></div></div><div class="bar-val" id="n-medical">0</div></div>
+      <div class="bar-row"><div class="bar-lbl">Fire</div><div class="bar-track"><div class="bar-fill green" id="b-fire" style="width:0%"></div></div><div class="bar-val" id="n-fire">0</div></div>
+    </div>
+  </div>
+
+  <!-- ROW 2: Timeline + Vessel Activity -->
+  <div class="an-grid">
+    <div class="card">
+      <div class="card-ttl">📈 Alert Volume — Last 7 Days</div>
+      <div class="tchart" id="tchart"></div>
+      <div class="tchart-labels" id="tchart-labels"></div>
+    </div>
+    <div class="card">
+      <div class="card-ttl">⛵ Vessel Alert Activity</div>
+      <div id="vessel-bars"></div>
+    </div>
+  </div>
+
+  <!-- ROW 3: Status distribution + Response time -->
+  <div class="an-grid-3">
+    <div class="card">
+      <div class="card-ttl">🟢 Status Distribution</div>
+      <div class="donut-wrap">
+        <div class="donut" id="donut-el">
+          <div class="donut-hole"><div class="donut-n" id="donut-n">—</div><div class="donut-l">Cases</div></div>
+        </div>
+        <div class="donut-legend">
+          <div class="dl-row"><div class="dl-dot" style="background:#C0392B"></div>Active<div class="dl-n" id="dl-active">0</div></div>
+          <div class="dl-row"><div class="dl-dot" style="background:#B8860B"></div>Triaged<div class="dl-n" id="dl-triaged">0</div></div>
+          <div class="dl-row"><div class="dl-dot" style="background:#2E6B8A"></div>Dispatched<div class="dl-n" id="dl-dispatched">0</div></div>
+          <div class="dl-row"><div class="dl-dot" style="background:#1E7A4E"></div>Resolved<div class="dl-n" id="dl-resolved">0</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-ttl">⏱ Live Operations Summary</div>
+      <div style="margin-top:8px">
+        <div style="margin-bottom:16px">
+          <div id="metric-open" style="font-family:'Lora',serif;font-size:36px;font-weight:700;color:var(--red)">—</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--mist);text-transform:uppercase">Open Incidents</div>
+        </div>
+        <div style="margin-bottom:16px">
+          <div id="metric-resolved-rate" style="font-family:'Lora',serif;font-size:36px;font-weight:700;color:var(--green)">—</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--mist);text-transform:uppercase">Resolved Share</div>
+        </div>
+        <div>
+          <div id="metric-last" style="font-family:'Lora',serif;font-size:22px;font-weight:700;color:var(--steel);line-height:1.2">—</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--mist);text-transform:uppercase">Latest Alert</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-ttl">📡 Live Activity Feed</div>
+      <div id="live-feed" style="max-height:260px;overflow-y:auto">
+        <div style="color:var(--mist);font-size:12px;padding:12px 0;font-family:'JetBrains Mono',monospace">Loading feed...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALERT TABLE -->
+  <div class="sec-title">Recent Alerts — ಇತ್ತೀಚಿನ ಎಚ್ಚರಿಕೆಗಳು</div>
+  <div class="table-wrap">
+    <table class="atable">
+      <thead><tr><th>Alert ID</th><th>Vessel</th><th>Type</th><th>Severity</th><th>Status</th><th>Distance</th><th>Time</th></tr></thead>
+      <tbody id="alert-table">
+        <tr><td colspan="7" style="text-align:center;color:var(--mist);padding:32px">Loading alerts...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    <div class="fg">
+      <div><div class="fb-n">TARANG</div><p class="fb-d">Coastal rescue operations dashboard for Coastal Innovation Hackathon, built by Deploy or Die.</p></div>
+      <div><div class="fh">Navigate</div><ul class="fl"><li><a href="/">Home</a></li><li><a href="/dashboard">Dashboard</a></li><li><a href="/analytics">Analytics</a></li><li><a href="/vessels">Vessels</a></li></ul></div>
+      <div><div class="fh">Deploy or Die</div><ul class="fl"><li><a href="#">Coastal Innovation Hackathon</a></li><li><a href="#">CIH 2026</a></li><li><a href="#">Bengaluru, KA</a></li></ul></div>
+    </div>
+    <div class="fbar"><span class="fcp">© 2026 Deploy or Die — CIH 2026</span><span class="fcp">TARANG v1.0</span></div>
+  </div>
+</footer>
+
+<div id="mobnav">
+  <a class="mni" href="/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Home</span></a>
+  <a class="mni" href="/dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span>Dashboard</span></a>
+  <a class="mni" href="/vessels"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 20h20M6 20V8l6-5 6 5v12"/></svg><span>Fleet</span></a>
+  <a class="mni on" href="/analytics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span>Stats</span></a>
+</div>
+
+<script>
+setInterval(()=>{
+  const now=new Date();
+  const ts=now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'})+' IST';
+  const e=document.getElementById('dnav-clk');if(e)e.textContent=ts;
+  const me=document.getElementById('mnav-ts');if(me)me.textContent=ts;
+},1000);
+
+const VN={'VES-001':'Ananya Hegde','VES-002':'Kiran Shetty','VES-003':'Meera Gowda','VES-004':'Prakash Naik','VES-005':'Nandini Rao'};
+const TLKN={sos_manual:'Manual SOS',capsize:'Capsize',drift:'Drift',engine_fail:'Engine Fail',medical:'Medical',fire:'Fire'};
+const TICN={sos_manual:'🆘',capsize:'🌀',drift:'〰️',engine_fail:'⚙️',medical:'🏥',fire:'🔥'};
+
+function animNum(id,target){
+  const el=document.getElementById(id);if(!el||isNaN(target))return;
+  const cur=parseInt(el.textContent)||0;if(cur===target)return;
+  let i=0;const steps=12;const inc=(target-cur)/steps;
+  const t=setInterval(()=>{i++;el.textContent=Math.round(cur+inc*i);if(i>=steps){el.textContent=target;clearInterval(t);}},30);
+}
+function setBar(id,pct){const el=document.getElementById(id);if(el)el.style.width=pct+'%';}
+function setNum(id,n){const el=document.getElementById(id);if(el)el.textContent=n;}
+
+async function load(){
+  document.getElementById('upd-ts').textContent=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  let alerts=[];
+  try{
+    const r=await fetch(`${window.location.origin}/api/alerts?limit=200`);
+    alerts=await r.json();
+  }catch{
+    // Demo data
+    const types=['sos_manual','capsize','drift','engine_fail','medical','fire'];
+    const sevs=['critical','high','medium','low'];
+    const vids=['VES-001','VES-002','VES-003','VES-004','VES-005'];
+    const statuses=['active','dispatched','resolved','resolved','triaged'];
+    for(let i=0;i<12;i++){
+      const vid=vids[Math.floor(Math.random()*vids.length)];
+      alerts.push({id:'ALT-D'+i,alert_id:'ALT-D'+i,vessel_id:vid,vessel_name:VN[vid],alert_type:types[Math.floor(Math.random()*types.length)],severity:sevs[Math.floor(Math.random()*sevs.length)],status:statuses[Math.floor(Math.random()*statuses.length)],distance_km:parseFloat((5+Math.random()*18).toFixed(1)),created_at:new Date(Date.now()-Math.random()*86400000*7).toISOString()});
+    }
+  }
+
+  const total=alerts.length;
+  const byStatus=s=>alerts.filter(a=>(a.status||'active')===s).length;
+  const bySev=s=>alerts.filter(a=>a.severity===s).length;
+  const byType=t=>alerts.filter(a=>a.alert_type===t).length;
+  const openCount=byStatus('active')+byStatus('triaged')+byStatus('dispatched');
+
+  // KPI
+  animNum('kpi-total',openCount);
+  animNum('kpi-active',byStatus('active'));
+  animNum('kpi-disp',byStatus('dispatched'));
+  animNum('kpi-res',byStatus('resolved'));
+  const resRate=total>0?Math.round(byStatus('resolved')/total*100):0;
+  document.getElementById('kpi-res-rate').textContent=resRate+'% resolved';
+  const mo=document.getElementById('metric-open');if(mo)mo.textContent=openCount;
+  const mr=document.getElementById('metric-resolved-rate');if(mr)mr.textContent=resRate+'%';
+  const ml=document.getElementById('metric-last');if(ml){const latest=alerts[0];ml.textContent=latest?((VN[latest.vessel_id]||latest.vessel_name||latest.vessel_id||'Alert')+' · '+(TLKN[latest.alert_type]||latest.alert_type||'Alert')):'No alerts';}
+  const act=byStatus('active');
+  document.getElementById('kpi-active-d').textContent=act>0?`⚠️ ${act} vessel${act>1?'s':''} in distress`:'✅ Clear';
+
+  // Severity bars
+  const maxSev=Math.max(1,...['critical','high','medium','low'].map(s=>bySev(s)));
+  ['critical','high','medium','low'].forEach(s=>{
+    const n=bySev(s);
+    setBar('b-'+s,Math.round(n/maxSev*100));
+    setNum('n-'+s,n);
+  });
+
+  // Type bars
+  const types=['sos_manual','capsize','drift','engine_fail','medical','fire'];
+  const maxType=Math.max(1,...types.map(t=>byType(t)));
+  types.forEach(t=>{const n=byType(t);setBar('b-'+t,Math.round(n/maxType*100));setNum('n-'+t,n);});
+
+  // Status donut (CSS conic-gradient)
+  const active=byStatus('active'),triaged=byStatus('triaged'),disp=byStatus('dispatched'),res=byStatus('resolved');
+  const tot=Math.max(1,total);
+  const ap=Math.round(active/tot*360),tp=Math.round(triaged/tot*360),dp=Math.round(disp/tot*360),rp=360-ap-tp-dp;
+  document.getElementById('donut-el').style.background=`conic-gradient(#C0392B 0deg ${ap}deg,#B8860B ${ap}deg ${ap+tp}deg,#2E6B8A ${ap+tp}deg ${ap+tp+dp}deg,#1E7A4E ${ap+tp+dp}deg 360deg)`;
+  document.getElementById('donut-n').textContent=total;
+  ['active','triaged','dispatched','resolved'].forEach(s=>{const el=document.getElementById('dl-'+s);if(el)el.textContent=byStatus(s);});
+
+  // Timeline: last 7 days
+  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const now=new Date();
+  const dayCounts=Array(7).fill(0);
+  alerts.forEach(a=>{
+    const d=new Date(a.created_at);
+    const diff=Math.floor((now-d)/(1000*60*60*24));
+    if(diff<7) dayCounts[6-diff]++;
+  });
+  const maxDay=Math.max(1,...dayCounts);
+  const tChart=document.getElementById('tchart');
+  const tLabels=document.getElementById('tchart-labels');
+  tChart.innerHTML=dayCounts.map((n,i)=>`<div class="tbar${n===Math.max(...dayCounts)?' active':''}" style="height:${Math.max(8,Math.round(n/maxDay*88))}px"><div class="tbar-tip">${days[(new Date().getDay()-6+i+7)%7]}: ${n}</div></div>`).join('');
+  tLabels.innerHTML=Array(7).fill(0).map((_,i)=>`<div class="tbl">${days[(new Date().getDay()-6+i+7)%7]}</div>`).join('');
+
+  // Vessel bars
+  const vids=['VES-001','VES-002','VES-003','VES-004','VES-005'];
+  const vCounts=Object.fromEntries(vids.map(v=>[v,alerts.filter(a=>a.vessel_id===v).length]));
+  const maxV=Math.max(1,...Object.values(vCounts));
+  document.getElementById('vessel-bars').innerHTML=vids.map(vid=>`<div class="bar-row"><div class="bar-lbl">${VN[vid]}</div><div class="bar-track"><div class="bar-fill steel" style="width:${Math.round(vCounts[vid]/maxV*100)}%"></div></div><div class="bar-val">${vCounts[vid]}</div></div>`).join('');
+
+  // Alert table
+  const sorted=[...alerts].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,15);
+  document.getElementById('alert-table').innerHTML=sorted.length?sorted.map(a=>`<tr>
+    <td class="id">${a.alert_id||a.id}</td>
+    <td class="name">${a.vessel_name||VN[a.vessel_id]||a.vessel_id}</td>
+    <td>${TICN[a.alert_type]||'📡'} ${TLKN[a.alert_type]||a.alert_type}</td>
+    <td><span class="sev sev-${a.severity}">${a.severity}</span></td>
+    <td><span class="chip chip-${a.status}">${a.status}</span></td>
+    <td style="font-family:'JetBrains Mono',monospace;font-size:11px">${a.distance_km||'?'} km</td>
+    <td style="font-family:'JetBrains Mono',monospace;font-size:10px">${new Date(a.created_at).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</td>
+  </tr>`).join(''):`<tr><td colspan="7" style="text-align:center;color:var(--mist);padding:32px">No alerts. Simulate one on the Dashboard.</td></tr>`;
+
+  // Live feed
+  const feed=document.getElementById('live-feed');
+  const feedItems=sorted.slice(0,8).map(a=>`<div class="feed-row"><div class="feed-ic">${TICN[a.alert_type]||'📡'}</div><div><div class="feed-t">${new Date(a.created_at).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</div><div class="feed-m">${a.vessel_name||VN[a.vessel_id]} — ${TLKN[a.alert_type]} · <span style="color:var(--rust)">${(a.severity||'').toUpperCase()}</span></div></div></div>`);
+  feed.innerHTML=feedItems.length?feedItems.join('')+'<div style="font-family:\'JetBrains Mono\',monospace;font-size:9px;color:var(--mist);text-align:center;padding:12px;opacity:.5">— End of feed —</div>'
+    :'<div style="color:var(--mist);font-size:12px;padding:12px;font-family:\'JetBrains Mono\',monospace">No activity yet.</div>';
+}
+
+load();
+setInterval(load,30000);
+</script>
+</body>
+</html>

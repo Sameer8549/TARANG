@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TARANG | How It Works</title>
+  <style>
+    :root {
+      --bg: #0b1620;
+      --panel: #132433;
+      --panel-2: #1a3144;
+      --line: rgba(255, 255, 255, 0.08);
+      --text: #eef4f8;
+      --muted: #9db0bf;
+      --accent: #f06a2b;
+      --ok: #2bb673;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      background:
+        radial-gradient(circle at top, rgba(42, 92, 130, 0.25), transparent 36%),
+        linear-gradient(180deg, #09131b 0%, var(--bg) 100%);
+      color: var(--text);
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .shell {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 56px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .brand {
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      letter-spacing: 0.03em;
+      margin: 0;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      border: 1px solid rgba(240, 106, 43, 0.45);
+      color: #ffd8c6;
+      background: rgba(240, 106, 43, 0.08);
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 22px;
+      margin-bottom: 24px;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(22, 42, 58, 0.95), rgba(15, 29, 40, 0.98));
+      border: 1px solid var(--line);
+      padding: 24px;
+    }
+
+    .eyebrow {
+      color: var(--accent);
+      font-size: 0.8rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .hero h2,
+    .panel h3 {
+      margin: 0 0 10px;
+      line-height: 1.1;
+    }
+
+    .hero p,
+    .panel p,
+    .panel li {
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 0.98rem;
+    }
+
+    .signal-grid,
+    .step-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .metric,
+    .step,
+    .lane {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--line);
+      padding: 18px;
+      min-height: 100%;
+    }
+
+    .metric strong,
+    .step strong,
+    .lane strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--text);
+      font-size: 1.05rem;
+    }
+
+    .step-no {
+      color: var(--accent);
+      font-size: 0.8rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .checklist {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 12px;
+    }
+
+    .checklist li {
+      padding-left: 22px;
+      position: relative;
+    }
+
+    .checklist li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 10px;
+      width: 8px;
+      height: 8px;
+      background: var(--ok);
+      border-radius: 50%;
+    }
+
+    .footer-note {
+      margin-top: 22px;
+      padding: 16px 18px;
+      border: 1px solid rgba(43, 182, 115, 0.24);
+      background: rgba(43, 182, 115, 0.08);
+      color: #d7f5e7;
+    }
+
+    @media (max-width: 880px) {
+      .hero,
+      .signal-grid,
+      .step-grid,
+      .flow {
+        grid-template-columns: 1fr;
+      }
+
+      .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .shell {
+        width: min(100% - 20px, 1120px);
+        padding-top: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <div class="topbar">
+      <h1 class="brand">TARANG</h1>
+      <a class="back-link" href="/">Return to Home</a>
+    </div>
+
+    <section class="hero">
+      <article class="panel">
+        <div class="eyebrow">Coastal Innovation Hackathon</div>
+        <h2>How TARANG coordinates a rescue from first distress ping to final closure.</h2>
+        <p>
+          TARANG is built for coastal operators who need fast visibility, simple decisions,
+          and a direct response flow. Every active case moves through one operational track:
+          detect, verify, dispatch, monitor, and resolve.
+        </p>
+      </article>
+
+      <aside class="panel">
+        <div class="eyebrow">Operations View</div>
+        <div class="signal-grid">
+          <div class="metric">
+            <strong>Alert intake</strong>
+            <p>Distress reports enter through SOS events, operator actions, and tracked profiles.</p>
+          </div>
+          <div class="metric">
+            <strong>Case focus</strong>
+            <p>Selecting a profile should take the operator straight to the live map and case actions.</p>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="panel" style="margin-bottom: 22px;">
+      <div class="eyebrow">Process</div>
+      <div class="step-grid">
+        <article class="step">
+          <div class="step-no">Step 01</div>
+          <strong>Signal captured</strong>
+          <p>The system receives a distress report and marks the case active inside the operations center.</p>
+        </article>
+        <article class="step">
+          <div class="step-no">Step 02</div>
+          <strong>Operator review</strong>
+          <p>The operator opens the profile, confirms the incident, and sees the case location on the map.</p>
+        </article>
+        <article class="step">
+          <div class="step-no">Step 03</div>
+          <strong>Rescue dispatch</strong>
+          <p>Dispatch actions assign the nearest team and move the case into a tracked response state.</p>
+        </article>
+        <article class="step">
+          <div class="step-no">Step 04</div>
+          <strong>Live monitoring</strong>
+          <p>Vessel movement, case status, and operator alerts stay visible until the rescue is complete.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="eyebrow">What the operator needs</div>
+      <div class="flow">
+        <article class="lane">
+          <strong>Clarity</strong>
+          <ul class="checklist">
+            <li>Only active cases should dominate the dashboard.</li>
+            <li>Resolved cases should stay visible in their own summary state.</li>
+            <li>The control center must close cleanly and return to the case list.</li>
+          </ul>
+        </article>
+        <article class="lane">
+          <strong>Speed</strong>
+          <ul class="checklist">
+            <li>Profile selection should immediately focus the map on that exact case.</li>
+            <li>Actions should stay inside the operations flow, not hide in dead-end screens.</li>
+            <li>Dismissible messages should never trap the operator for a fixed timeout.</li>
+          </ul>
+        </article>
+        <article class="lane">
+          <strong>Communication</strong>
+          <ul class="checklist">
+            <li>Language switching should stay consistent across text, alerts, and voice.</li>
+            <li>Only one completion voice should play after rescue resolution.</li>
+            <li>Operator feedback sounds must support action instead of adding noise.</li>
+          </ul>
+        </article>
+      </div>
+      <div class="footer-note">
+        TARANG is designed to feel like an operations console, not a demo page. The goal is fast action with minimal confusion.
+      </div>
+    </section>
+  </main>
+</body>
+</html>

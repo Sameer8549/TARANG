@@ -1,0 +1,17 @@
+{
+  "name": "tarang",
+  "version": "1.0.0",
+  "description": "TARANG — coastal emergency response platform for the Coastal Innovation Hackathon",
+  "scripts": {
+    "start:backend": "cd backend && python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000",
+    "install:backend": "cd backend && pip install -r requirements.txt",
+    "open:website": "start index.html",
+    "open:dashboard": "start frontend/dashboard.html",
+    "dev": "concurrently \"npm run start:backend\"",
+    "simulate": "curl -X POST http://localhost:8000/api/simulate/sos",
+    "simulate:fleet": "curl -X POST \"http://localhost:8000/api/simulate/fleet?count=5\""
+  },
+  "keywords": ["coastal", "maritime", "rescue", "operations", "catalyst", "fastapi", "node", "hackathon"],
+  "author": "Deploy or Die",
+  "license": "MIT"
+}

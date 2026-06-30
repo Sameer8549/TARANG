@@ -1,0 +1,1634 @@
+<!DOCTYPE html>
+<html lang="kn">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Dashboard — TARANG Maritime Rescue</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,700;0,800;1,400;1,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+Kannada:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<!-- ResponsiveVoice: works in ALL browsers (Chrome, Firefox, Safari, Edge) -->
+<script src="https://code.responsivevoice.org/responsivevoice.js?key=FREE"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Inter',sans-serif;background:#0A1628;color:#F5F0E8;overflow:hidden;display:flex;flex-direction:column}
+body.lang-kn{font-family:'Noto Sans Kannada','Inter',sans-serif}
+body.lang-kn .nb,body.lang-kn .rpttl,body.lang-kn .dbname,body.lang-kn .lhdr-main,body.lang-kn .kpi-n{font-family:'Noto Sans Kannada','Lora',serif}
+:root{--navy:#0A1628;--salt:#F5F0E8;--rust:#C4521A;--steel:#2E6B8A;--charcoal:#1C2B3A;--mist:#8FA8B8;--panel:#111E30;--green:#1E7A4E;--red:#C0392B;--amber:#B8860B}
+a{color:inherit;text-decoration:none}
+button{font-family:'Inter',sans-serif;cursor:pointer}
+
+/* ═══ NAV — identical to all other pages ═══ */
+#nav{height:64px;flex-shrink:0;background:var(--charcoal);border-bottom:2px solid rgba(196,82,26,.3);display:flex;align-items:center;padding:0 24px;z-index:200}
+.nb{font-family:'Lora',serif;font-weight:800;font-size:22px;letter-spacing:.06em;color:var(--salt);margin-right:28px}
+.nls{display:flex;gap:2px}
+.nl{font-size:13px;font-weight:500;color:var(--mist);padding:6px 13px;border-bottom:2px solid transparent;transition:color .2s}
+.nl:hover{color:var(--salt)}.nl.on{color:var(--salt);border-bottom-color:var(--rust)}
+.nr{margin-left:auto;display:flex;align-items:center;gap:14px}
+#ws-badge{font-family:'JetBrains Mono',monospace;font-size:11px;padding:5px 11px;border:1px solid var(--red);color:var(--red);transition:all .3s}
+#ws-badge.live{border-color:var(--green);color:var(--green)}
+#nav-clk{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mist)}
+.ncta{font-size:13px;font-weight:600;padding:8px 16px;background:var(--rust);border:2px solid var(--rust);color:#fff;transition:all .2s}
+.ncta:hover{background:transparent;color:var(--rust)}
+
+/* ═══ KPI BAR ═══ */
+#kpi-bar{flex-shrink:0;display:flex;background:var(--charcoal);border-bottom:1px solid rgba(245,240,232,.08)}
+.kpi{flex:1;padding:12px 20px;border-right:1px solid rgba(245,240,232,.07);position:relative}
+.kpi:last-child{border-right:none;flex:0.6;display:flex;align-items:center;justify-content:center}
+.kpi-n{font-family:'Lora',serif;font-size:26px;font-weight:700;line-height:1;margin-bottom:2px;transition:all .4s}
+.kpi-n.r{color:var(--red)}.kpi-n.o{color:var(--rust)}.kpi-n.b{color:var(--steel)}.kpi-n.g{color:var(--green)}
+.kpi-l{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--mist);text-transform:uppercase;letter-spacing:.06em}
+.kpi-sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--rust);margin-top:2px}
+.pulse-bar{position:absolute;bottom:0;left:0;height:2px;background:var(--rust);width:0;transition:width .5s ease}
+.kpi.pulsing .pulse-bar{width:100%}
+
+/* MAYDAY button */
+.mayday-btn{font-size:13px;font-weight:700;padding:10px 22px;background:var(--rust);border:2px solid var(--rust);color:#fff;transition:all .2s;display:flex;align-items:center;gap:8px;letter-spacing:.04em}
+.mayday-btn:hover{background:transparent;color:var(--rust)}
+.mayday-btn:disabled{opacity:.5;pointer-events:none}
+.pulse-dot{width:8px;height:8px;border-radius:50%;background:#fff;animation:pdot .8s infinite}
+@keyframes pdot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.6)}}
+
+/* ═══ MAIN SHELL ═══ */
+#shell{flex:1;display:flex;overflow:hidden;min-height:0}
+
+/* ═══ LEFT PANEL ═══ */
+#left{width:340px;flex-shrink:0;background:var(--panel);border-right:1px solid rgba(245,240,232,.08);display:flex;flex-direction:column;overflow:hidden}
+.lhdr{padding:14px 16px;border-bottom:1px solid rgba(245,240,232,.08);flex-shrink:0;background:var(--charcoal);display:flex;align-items:flex-start;justify-content:space-between}
+.lhdr-main{font-family:'Lora',serif;font-size:15px;font-weight:700;color:var(--salt)}
+.lhdr-kn{font-family:'Inter',sans-serif;font-size:11px;color:var(--mist);margin-top:2px}
+.lsos{font-size:11px;font-weight:700;padding:7px 14px;background:var(--rust);border:2px solid var(--rust);color:#fff;display:flex;align-items:center;gap:6px;transition:all .2s}
+.lsos:hover{background:transparent;color:var(--rust)}
+.ltabs{display:flex;border-bottom:1px solid rgba(245,240,232,.06);flex-shrink:0}
+.ltab{flex:1;padding:10px 4px;font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;background:none;border:none;border-bottom:2px solid transparent;color:var(--mist);cursor:pointer;transition:all .2s;letter-spacing:.04em}
+.ltab.on{color:var(--rust);border-bottom-color:var(--rust)}
+.tview{flex:1;overflow-y:auto;display:none;flex-direction:column}
+.tview.on{display:flex}
+.tview::-webkit-scrollbar{width:3px}.tview::-webkit-scrollbar-thumb{background:rgba(245,240,232,.1)}
+.fpills{padding:10px 14px;display:flex;gap:5px;flex-shrink:0;border-bottom:1px solid rgba(245,240,232,.05);flex-wrap:wrap}
+.fp{font-family:'JetBrains Mono',monospace;font-size:10px;padding:4px 9px;border:1px solid rgba(245,240,232,.1);color:var(--mist);background:none;cursor:pointer;transition:all .2s}
+.fp.on{border-color:var(--rust);color:var(--rust)}
+
+/* Alert Cards */
+.ac{padding:14px 15px;border-bottom:1px solid rgba(245,240,232,.05);border-left:3px solid transparent;cursor:pointer;transition:all .15s;position:relative}
+.ac:hover{background:rgba(245,240,232,.02)}.ac.sel{background:rgba(196,82,26,.06);border-left-color:var(--rust)!important}
+.ac-cv{border-left-color:var(--red)}.ac-hg{border-left-color:var(--rust)}.ac-md{border-left-color:var(--amber)}.ac-lw{border-left-color:var(--green)}
+.ac-cv{animation:alertglow 2s ease-in-out infinite}
+@keyframes alertglow{0%,100%{background:transparent}50%{background:rgba(192,57,43,.03)}}
+.ac-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px;gap:8px}
+.ac-name{font-weight:700;font-size:14px;color:var(--salt);line-height:1.2}
+.ac-kn{font-size:11px;color:var(--mist);margin-top:1px}
+.ac-type{font-size:11px;color:var(--rust);font-family:'JetBrains Mono',monospace;text-transform:uppercase;margin-bottom:5px;letter-spacing:.03em}
+.ac-meta{display:flex;gap:8px;font-size:11px;color:var(--mist);flex-wrap:wrap;align-items:center}
+.ac-timer{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--amber)}
+.chip{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;padding:2px 7px;text-transform:uppercase;border:1px solid;flex-shrink:0}
+.chip-active{color:var(--red);border-color:var(--red)}.chip-triaged{color:var(--amber);border-color:var(--amber)}
+.chip-dispatched{color:var(--steel);border-color:var(--steel)}.chip-resolved{color:var(--green);border-color:var(--green)}
+.sev{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;padding:2px 6px;border:1px solid}
+.sev-critical{color:var(--red);border-color:var(--red)}.sev-high{color:var(--rust);border-color:var(--rust)}
+.sev-medium{color:var(--amber);border-color:var(--amber)}.sev-low{color:var(--green);border-color:var(--green)}
+
+/* Vessel Cards */
+.vc-card{padding:13px 15px;border-bottom:1px solid rgba(245,240,232,.05);display:flex;gap:10px;align-items:flex-start;cursor:pointer;transition:background .15s}
+.vc-card:hover{background:rgba(245,240,232,.02)}
+.vc-card.sel{background:rgba(46,107,138,.12);box-shadow:inset 3px 0 0 var(--steel)}
+.vc-sdot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.vs-active{background:var(--green)}.vs-distress{background:var(--red);animation:pdot .8s infinite}
+.vc-name{font-weight:700;font-size:13px;color:var(--salt)}.vc-kn{font-size:11px;color:var(--mist);margin-top:1px}
+.vc-pos{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--steel);margin-top:4px}
+.vc-bat{font-family:'JetBrains Mono',monospace;font-size:10px;margin-top:3px}
+.bat-ok{color:var(--green)}.bat-low{color:var(--amber)}.bat-crit{color:var(--red)}
+.bat-track{width:60px;height:4px;background:rgba(245,240,232,.1);margin-top:3px;border:1px solid rgba(245,240,232,.08);display:inline-block}
+.bat-fill{height:100%;transition:width .6s ease}
+
+/* Activity */
+.arow{padding:9px 14px;border-bottom:1px solid rgba(245,240,232,.04);display:flex;gap:8px;align-items:flex-start}
+.arow-ic{font-size:13px;flex-shrink:0;margin-top:1px}
+.arow-t{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--rust);margin-bottom:1px}
+.arow-m{font-size:12px;color:var(--mist);line-height:1.4}
+
+/* Stats */
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(245,240,232,.06)}
+.sb{background:var(--panel);padding:18px 14px}
+.sn{font-family:'Lora',serif;font-size:28px;font-weight:700;color:var(--salt)}
+.sn.r{color:var(--red)}.sn.o{color:var(--rust)}.sn.b{color:var(--steel)}.sn.g{color:var(--green)}
+.sl{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--mist);text-transform:uppercase;margin-top:3px}
+
+/* ═══ CENTER ═══ */
+#center{flex:1;display:flex;flex-direction:column;min-width:0;position:relative}
+#wbar{height:38px;background:var(--charcoal);border-bottom:1px solid rgba(245,240,232,.08);display:flex;align-items:center;padding:0 16px;gap:18px;flex-shrink:0}
+.wi{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mist);display:flex;align-items:center;gap:4px}
+.wi strong{color:var(--salt)}
+.wrisk{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;padding:3px 10px;border:1px solid;letter-spacing:.04em}
+.risk-lo{color:var(--green);border-color:var(--green)}.risk-mo{color:var(--amber);border-color:var(--amber)}.risk-hi{color:var(--red);border-color:var(--red)}
+#map{flex:1;min-height:0;position:relative}
+#logbar{height:30px;background:var(--navy);border-top:1px solid rgba(245,240,232,.08);display:flex;align-items:center;padding:0 16px;gap:10px;flex-shrink:0}
+.lpfx{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--rust);text-transform:uppercase;font-weight:700;flex-shrink:0}
+#logmsg{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mist);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#mleg{position:absolute;top:12px;right:12px;z-index:800;background:rgba(28,43,58,.97);border:1px solid rgba(245,240,232,.1);padding:12px}
+.legt{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--rust);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;font-weight:700}
+.legr{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--mist);margin-bottom:5px}
+.legd{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+#sim-btn{position:absolute;bottom:40px;left:50%;transform:translateX(-50%);z-index:800;font-size:13px;font-weight:700;padding:12px 28px;background:var(--rust);border:2px solid var(--rust);color:#fff;display:flex;align-items:center;gap:10px;letter-spacing:.04em;box-shadow:0 4px 20px rgba(196,82,26,.4);transition:all .2s;white-space:nowrap}
+#sim-btn:hover{background:transparent;color:var(--rust);box-shadow:none}
+#sim-btn:disabled{opacity:.5;pointer-events:none}
+
+/* ═══ RIGHT PANEL ═══ */
+#right{width:400px;flex-shrink:0;background:var(--panel);border-left:1px solid rgba(245,240,232,.08);display:flex;flex-direction:column;overflow:hidden;transform:translateX(100%);transition:transform .3s ease}
+#right.open{transform:translateX(0)}
+.rphdr{padding:16px 18px;border-bottom:1px solid rgba(245,240,232,.08);flex-shrink:0;background:var(--charcoal);display:flex;align-items:flex-start;justify-content:space-between}
+.rpttl{font-family:'Lora',serif;font-size:17px;font-weight:700;color:var(--salt)}
+.rpkn{font-size:11px;color:var(--mist);margin-top:2px}
+.rpsub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--rust);text-transform:uppercase;margin-top:3px;letter-spacing:.04em}
+.rpcls{background:none;border:1px solid rgba(245,240,232,.12);color:var(--mist);font-size:14px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.rpcls:hover{border-color:var(--salt);color:var(--salt)}
+.rpbody{flex:1;overflow-y:auto;padding:18px}
+.rpbody::-webkit-scrollbar{width:3px}.rpbody::-webkit-scrollbar-thumb{background:rgba(245,240,232,.1)}
+
+/* Detail components */
+.dbanner{padding:14px;margin-bottom:16px;border-left:3px solid;display:flex;gap:12px;align-items:center}
+.dbanner.critical{border-color:var(--red);background:rgba(192,57,43,.07)}
+.dbanner.high{border-color:var(--rust);background:rgba(196,82,26,.07)}
+.dbanner.medium{border-color:var(--amber);background:rgba(184,134,11,.07)}
+.dbanner.low{border-color:var(--green);background:rgba(30,122,78,.07)}
+.dbic{font-size:28px}.dbname{font-family:'Lora',serif;font-size:17px;font-weight:700;color:var(--salt);margin-bottom:2px}
+.dbkn{font-size:12px;color:var(--mist)}.dbtype{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--mist);text-transform:uppercase;margin-top:4px}
+
+/* ETA bar */
+.eta-bar{background:rgba(196,82,26,.07);border:1px solid rgba(196,82,26,.2);padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:12px}
+.eta-ic{font-size:22px}
+.eta-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--rust);text-transform:uppercase;letter-spacing:.06em}
+.eta-val{font-family:'Lora',serif;font-size:24px;font-weight:700;color:var(--salt)}
+.eta-sub{font-size:11px;color:var(--mist);margin-top:1px}
+
+/* Live rescue tracker */
+.rescue-track{background:rgba(10,22,40,.72);border:1px solid rgba(46,107,138,.28);padding:13px 14px;margin-bottom:14px;position:relative;overflow:hidden}
+.rescue-track::before{content:'';position:absolute;left:-30%;top:0;width:30%;height:100%;background:linear-gradient(90deg,transparent,rgba(245,240,232,.06),transparent);animation:track-sheen 2.6s linear infinite}
+@keyframes track-sheen{to{left:110%}}
+.rtop{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;position:relative;z-index:1}
+.rtlabel{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--rust);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+.rtstatus{font-size:14px;font-weight:700;color:var(--salt);line-height:1.35}
+.rteta{text-align:right;font-family:'JetBrains Mono',monospace;color:var(--green);font-size:11px;white-space:nowrap}
+.rtrack{height:6px;background:rgba(245,240,232,.08);margin:13px 0 11px;border:1px solid rgba(245,240,232,.07);position:relative;z-index:1}
+.rfill{height:100%;width:0;background:linear-gradient(90deg,var(--rust),var(--green));transition:width .35s ease}
+.rsteps{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;position:relative;z-index:1}
+.rstep{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--mist);text-transform:uppercase;display:flex;align-items:center;gap:5px;min-width:0}
+.rdot{width:7px;height:7px;border-radius:50%;background:rgba(245,240,232,.18);flex-shrink:0}
+.rstep.on{color:var(--salt)}.rstep.on .rdot{background:var(--green);box-shadow:0 0 0 4px rgba(30,122,78,.14)}
+.live-boat{filter:drop-shadow(0 8px 10px rgba(0,0,0,.45));animation:boat-bob .85s ease-in-out infinite alternate;transform-origin:center}
+@keyframes boat-bob{from{transform:translateY(-1px) rotate(-2deg)}to{transform:translateY(2px) rotate(2deg)}}
+.route-pulse{stroke-dasharray:8 10;animation:dashmove 1s linear infinite}
+@keyframes dashmove{to{stroke-dashoffset:-36}}
+
+/* Timeline */
+.tl{display:flex;align-items:flex-start;margin-bottom:16px}
+.tls{flex:1;display:flex;flex-direction:column;align-items:center;position:relative}
+.tls:not(:last-child)::after{content:'';position:absolute;top:10px;left:50%;right:-50%;height:1px;background:rgba(245,240,232,.08);z-index:0}
+.tls.done:not(:last-child)::after{background:var(--green)}
+.tld{width:20px;height:20px;border:2px solid rgba(245,240,232,.15);background:var(--panel);position:relative;z-index:1;display:flex;align-items:center;justify-content:center;font-size:9px;transition:all .3s}
+.tld.done{background:var(--green);border-color:var(--green);color:#fff;font-weight:700}
+.tld.cur{background:var(--rust);border-color:var(--rust);color:#fff}
+.tll{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--mist);margin-top:5px;text-transform:uppercase}
+
+/* Info grid */
+.igrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px}
+.ibox{background:rgba(245,240,232,.03);border:1px solid rgba(245,240,232,.06);padding:10px}
+.ilbl{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--rust);text-transform:uppercase;margin-bottom:3px;letter-spacing:.04em}
+.ival{font-size:13px;font-weight:600;color:var(--salt)}.ival.mono{font-family:'JetBrains Mono',monospace;font-size:11px}
+
+/* RSSI */
+.rssi-row{display:flex;align-items:center;gap:6px;margin-top:4px}
+.rssi-track{flex:1;height:5px;background:rgba(10,22,40,.6);border:1px solid rgba(245,240,232,.06)}
+.rssi-fill{height:100%;transition:width .5s ease}
+
+/* Hops */
+.hops{display:flex;align-items:center;flex-wrap:wrap;gap:3px;margin-top:5px}
+.hn{font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 6px;border:1px solid rgba(245,240,232,.1);color:var(--mist)}
+.ha{color:var(--rust);font-size:10px;font-weight:700}
+
+/* AI box */
+.ai-box{background:rgba(10,22,40,.5);border-left:3px solid var(--rust);padding:12px;margin-bottom:14px}
+.ailbl{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--rust);text-transform:uppercase;letter-spacing:.1em;margin-bottom:7px;font-weight:700}
+.aitxt{font-size:12px;color:var(--salt);line-height:1.65}
+.airesp{margin-top:9px;padding:9px;background:rgba(46,107,138,.1);border:1px solid rgba(46,107,138,.2);font-size:11px;color:var(--steel);line-height:1.5;font-weight:500}
+
+/* Action dropdown */
+.action-drop{margin-bottom:14px;border:1px solid rgba(245,240,232,.08);background:rgba(245,240,232,.03)}
+.action-drop summary{list-style:none;display:flex;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--salt);text-transform:uppercase;letter-spacing:.08em}
+.action-drop summary::-webkit-details-marker{display:none}
+.action-drop summary::after{content:'+';font-size:16px;color:var(--rust);line-height:1}
+.action-drop[open] summary::after{content:'-'}
+.action-drop-body{padding:0 14px 14px}
+.action-drop-note{font-size:12px;color:var(--mist);line-height:1.6;margin-bottom:10px}
+
+/* TTS */
+.seclbl{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--rust);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;font-weight:700}
+.langpills{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+.lp{font-size:12px;padding:5px 11px;border:1px solid rgba(245,240,232,.12);color:var(--mist);background:none;cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif}
+.lp:hover{border-color:var(--steel);color:var(--steel)}.lp.on{border-color:var(--rust);color:var(--rust);background:rgba(196,82,26,.06)}
+.speakbtn{width:100%;padding:11px;font-size:13px;font-weight:600;background:var(--steel);border:2px solid var(--steel);color:#fff;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.speakbtn:hover{background:transparent;color:var(--steel)}
+.ttstxt{margin-top:9px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mist);line-height:1.6;border-left:2px solid var(--steel);padding:9px;background:rgba(10,22,40,.3);display:none}
+
+/* Audio waveform */
+.wviz{display:none;align-items:center;gap:3px;padding:8px 12px;background:rgba(30,122,78,.05);border:1px solid rgba(30,122,78,.15);margin-top:8px}
+.wviz.on{display:flex}
+.wvb{width:3px;background:var(--green);animation:wba .6s ease-in-out infinite alternate}
+.wvb:nth-child(1){height:8px;animation-delay:0s}.wvb:nth-child(2){height:16px;animation-delay:.1s}
+.wvb:nth-child(3){height:10px;animation-delay:.2s}.wvb:nth-child(4){height:22px;animation-delay:.3s}
+.wvb:nth-child(5){height:12px;animation-delay:.4s}.wvb:nth-child(6){height:18px;animation-delay:.5s}.wvb:nth-child(7){height:8px;animation-delay:.6s}
+@keyframes wba{to{transform:scaleY(2.2)}}
+.wvlbl{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green);margin-left:8px}
+
+/* Dispatch */
+.divhr{border:none;border-top:1px solid rgba(245,240,232,.08);margin:14px 0}
+.dabtns{display:flex;flex-direction:column;gap:7px}
+.dab{width:100%;padding:11px;font-size:13px;font-weight:600;border:2px solid;text-align:left;display:flex;align-items:center;gap:8px;transition:all .2s}
+.dab:disabled{opacity:.4;pointer-events:none}
+.dab-rust{background:var(--rust);border-color:var(--rust);color:#fff}.dab-rust:hover{background:transparent;color:var(--rust)}
+.dab-steel{background:transparent;border-color:var(--steel);color:var(--steel)}.dab-steel:hover{background:var(--steel);color:#fff}
+.dab-green{background:transparent;border-color:var(--green);color:var(--green)}.dab-green:hover{background:var(--green);color:#fff}
+.dab-ghost{background:transparent;border-color:rgba(245,240,232,.14);color:var(--mist)}.dab-ghost:hover{border-color:var(--salt);color:var(--salt)}
+.darow{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+
+/* Toasts */
+#toasts{position:fixed;top:74px;right:14px;z-index:9999;display:flex;flex-direction:column;gap:7px;pointer-events:none}
+.toast{background:var(--charcoal);border-left:3px solid var(--rust);padding:12px 16px;min-width:280px;pointer-events:all;animation:tin .3s ease;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.toast.tg{border-left-color:var(--green)}.toast.tb{border-left-color:var(--steel)}.toast.tr{border-left-color:var(--red)}
+@keyframes tin{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
+.tttl{font-size:13px;font-weight:700;color:var(--salt);margin-bottom:3px}
+.tbod{font-size:12px;color:var(--mist);line-height:1.4}
+
+/* Empty state */
+.empty{padding:40px 16px;text-align:center;color:var(--mist)}
+.eic{font-size:28px;opacity:.4;margin-bottom:10px}.etxt{font-size:13px;line-height:1.6}
+
+/* Leaflet overrides */
+.leaflet-container{background:#040d18!important}
+.leaflet-tile{filter:brightness(.55) saturate(.4)}
+.leaflet-popup-content-wrapper{background:var(--charcoal)!important;border:1px solid rgba(245,240,232,.12)!important;border-radius:0!important;box-shadow:0 8px 24px rgba(0,0,0,.6)!important;padding:0!important}
+.leaflet-popup-content{margin:0!important}.leaflet-popup-tip{background:var(--charcoal)!important}
+.mpop{padding:11px 14px;min-width:160px}
+.mptl{font-family:'Lora',serif;font-weight:700;font-size:13px;color:var(--rust);margin-bottom:5px}
+.mpr{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--mist);margin-bottom:3px}
+
+/* Clean SVG map marker styles */
+@keyframes sonarRing{0%{transform:scale(1);opacity:.8}100%{transform:scale(2.8);opacity:0}}
+@keyframes sonarRing2{0%{transform:scale(1);opacity:.6}100%{transform:scale(2.2);opacity:0}}
+.alert-mkr{position:relative;width:28px;height:28px;cursor:pointer}
+.alert-mkr .ring{position:absolute;inset:0;border-radius:50%;border:2px solid;animation:sonarRing 1.6s ease-out infinite}
+.alert-mkr .ring2{position:absolute;inset:0;border-radius:50%;border:1px solid;animation:sonarRing 1.6s ease-out .5s infinite}
+.alert-mkr .core{position:absolute;inset:5px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.vessel-mkr{position:relative;width:22px;height:22px;cursor:pointer}
+.rescue-mkr{position:relative;width:26px;height:26px;cursor:pointer}
+
+/* ═══ MOBILE DASHBOARD ═══ */
+@media(max-width:768px){
+  html,body{overflow:auto;height:auto}
+  #nav{display:none!important}
+  #kpi-bar{display:none}
+  #shell{flex-direction:column;height:auto;overflow:visible}
+  #left{width:100%;border-right:none;border-bottom:1px solid rgba(245,240,232,.08);height:auto;max-height:none}
+  #center{height:60vw;min-height:280px;flex-shrink:0}
+  #right{width:100%;transform:none!important;border-left:none;border-top:1px solid rgba(245,240,232,.08);height:auto;min-height:calc(100vh - 64px);max-height:none}
+  #right.open{transform:none!important}
+  .rpbody{min-height:calc(100vh - 140px);padding-bottom:88px}
+  #mleg{display:none}
+  #sim-btn{font-size:11px;padding:10px 18px;bottom:48px}
+  #logbar{height:26px}
+  #wbar{height:34px;gap:10px;padding:0 12px}
+  .wi{font-size:10px}
+  .lhdr-main{font-size:13px}
+  .ltab{font-size:9px;padding:8px 2px}
+  .ac{padding:12px 14px}
+  .ac-name{font-size:13px}
+  body{padding-bottom:64px}
+  /* Mobile header */
+  #mob-dash-hdr{display:flex!important}
+  /* Mobile KPI strip */
+  #mob-kpi{display:flex!important}
+  /* Mobile bottom nav */
+  #mob-dash-nav{display:flex!important;z-index:5000!important;pointer-events:auto!important}
+  #mob-dash-nav a{position:relative;z-index:5001;pointer-events:auto!important}
+  #map .leaflet-control-container,#mleg,#sim-btn{z-index:350!important}
+}
+@media(min-width:769px){
+  #mob-dash-hdr{display:none!important}
+  #mob-kpi{display:none!important}
+  #mob-dash-nav{display:none!important}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ MOBILE HEADER (mobile only) ═══ -->
+<div id="mob-dash-hdr" style="display:none;position:sticky;top:0;z-index:400;height:56px;background:#1C2B3A;border-bottom:1px solid rgba(196,82,26,.3);align-items:center;justify-content:space-between;padding:0 18px">
+  <div style="font-family:'Lora',serif;font-weight:800;font-size:19px;color:#F5F0E8">TARANG</div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <div id="mob-ws-badge" style="font-family:'JetBrains Mono',monospace;font-size:9px;padding:4px 9px;border:1px solid #C0392B;color:#C0392B">⚫ OFFLINE</div>
+    <button class="lang-btn" data-lang="en" onclick="setLang('en')"
+      style="font-family:'JetBrains Mono',monospace;font-size:9px;padding:4px 8px;border:1px solid #C4521A;background:#C4521A;color:#fff;cursor:pointer">EN</button>
+    <button class="lang-btn" data-lang="kn" onclick="setLang('kn')"
+      style="font-family:'JetBrains Mono',monospace;font-size:9px;padding:4px 8px;border:1px solid rgba(245,240,232,.2);background:transparent;color:#8FA8B8;cursor:pointer">ಕನ್ನಡ</button>
+  </div>
+</div>
+
+<!-- ═══ MOBILE KPI STRIP (mobile only) ═══ -->
+<div id="mob-kpi" style="display:none;flex-shrink:0;background:#111E30;border-bottom:1px solid rgba(245,240,232,.07);padding:10px 16px;gap:0">
+  <div style="flex:1;text-align:center;border-right:1px solid rgba(245,240,232,.07);padding-right:8px">
+    <div style="font-family:'Lora',serif;font-size:22px;font-weight:700;color:#C0392B" id="mob-k-act">0</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#8FA8B8;text-transform:uppercase" data-i18n="activeSos">Active SOS</div>
+  </div>
+  <div style="flex:1;text-align:center;border-right:1px solid rgba(245,240,232,.07);padding:0 8px">
+    <div style="font-family:'Lora',serif;font-size:22px;font-weight:700;color:#C4521A" id="mob-k-tot">0</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#8FA8B8;text-transform:uppercase" data-i18n="total">Live Queue</div>
+  </div>
+  <div style="flex:1;text-align:center;padding-left:8px">
+    <div style="font-family:'Lora',serif;font-size:22px;font-weight:700;color:#1E7A4E" id="mob-k-res">0</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#8FA8B8;text-transform:uppercase" data-i18n="resolved">Resolved</div>
+  </div>
+</div>
+
+<!-- ═══ MOBILE BOTTOM NAV (mobile only) ═══ -->
+<div id="mob-dash-nav" style="display:none;position:fixed;bottom:0;left:0;right:0;height:64px;background:#1C2B3A;border-top:1px solid rgba(245,240,232,.1);z-index:400">
+  <a href="/" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#8FA8B8;font-family:'JetBrains Mono',monospace;font-size:8px;text-transform:uppercase;text-decoration:none">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span data-i18n="home">Home</span>
+  </a>
+  <a href="/dashboard" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#C4521A;font-family:'JetBrains Mono',monospace;font-size:8px;text-transform:uppercase;text-decoration:none;border-top:2px solid #C4521A">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span data-i18n="dashboard">Dashboard</span>
+  </a>
+  <a href="/vessels" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#8FA8B8;font-family:'JetBrains Mono',monospace;font-size:8px;text-transform:uppercase;text-decoration:none">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 20h20M6 20V8l6-5 6 5v12"/></svg><span data-i18n="fleet">Fleet</span>
+  </a>
+  <a href="/analytics" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#8FA8B8;font-family:'JetBrains Mono',monospace;font-size:8px;text-transform:uppercase;text-decoration:none">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span data-i18n="stats">Stats</span>
+  </a>
+</div>
+
+<!-- ═══ NAV ═══ -->
+<div id="nav">
+  <div class="nb">TARANG</div>
+  <div class="nls">
+    <a class="nl" href="/" data-i18n="home">Home</a>
+    <a class="nl on" href="/dashboard" data-i18n="dashboard">Dashboard</a>
+    <a class="nl" href="/how-it-works" data-i18n="howItWorks">How It Works</a>
+    <a class="nl" href="/analytics" data-i18n="analytics">Analytics</a>
+    <a class="nl" href="/vessels" data-i18n="vessels">Vessels</a>
+  </div>
+  <div class="nr">
+    <div id="ws-badge">⚫ OFFLINE</div>
+    <!-- Language Toggle -->
+    <div style="display:flex;gap:4px;align-items:center">
+      <button class="lang-btn" data-lang="en" onclick="setLang('en')"
+        style="font-family:'JetBrains Mono',monospace;font-size:10px;padding:5px 10px;border:1px solid var(--rust);background:var(--rust);color:#fff;cursor:pointer;transition:all .2s;letter-spacing:.04em">EN</button>
+      <button class="lang-btn" data-lang="kn" onclick="setLang('kn')"
+        style="font-family:'JetBrains Mono',monospace;font-size:10px;padding:5px 10px;border:1px solid rgba(245,240,232,.2);background:transparent;color:var(--mist);cursor:pointer;transition:all .2s">ಕನ್ನಡ</button>
+    </div>
+    <div id="nav-clk"></div>
+  </div>
+</div>
+
+<!-- ═══ KPI BAR ═══ -->
+<div id="kpi-bar">
+  <div class="kpi"><div class="kpi-n r" id="k-act">0</div><div class="kpi-l" data-i18n="activeSos">Active SOS</div><div class="kpi-sub" id="k-sub"></div><div class="pulse-bar"></div></div>
+  <div class="kpi"><div class="kpi-n o" id="k-tot">0</div><div class="kpi-l" data-i18n="totalAlerts">Live Queue</div></div>
+  <div class="kpi"><div class="kpi-n b" id="k-dis">0</div><div class="kpi-l" data-i18n="dispatched">Dispatched</div></div>
+  <div class="kpi"><div class="kpi-n g" id="k-res">0</div><div class="kpi-l" data-i18n="resolved">Resolved</div></div>
+</div>
+
+<!-- ═══ SHELL ═══ -->
+<div id="shell">
+
+  <!-- LEFT -->
+  <div id="left">
+    <div class="lhdr">
+      <div><div class="lhdr-main" data-i18n="operationsCenter">Operations Center</div><div class="lhdr-kn" data-i18n="station">Mangaluru Station</div></div>
+    </div>
+    <div class="ltabs">
+      <button class="ltab on" onclick="switchTab('alerts',this)" data-tab-label="alerts">Alerts</button>
+      <button class="ltab" onclick="switchTab('vessels',this)" data-tab-label="vessels">Vessels</button>
+      <button class="ltab" onclick="switchTab('activity',this)" data-tab-label="activity">Activity</button>
+    </div>
+
+    <!-- ALERTS -->
+    <div class="tview on" id="tv-alerts">
+      <div class="fpills">
+        <button class="fp on" onclick="setF('all',this)" data-filter-label="all">All</button>
+        <button class="fp" onclick="setF('active',this)" data-filter-label="active">Active</button>
+        <button class="fp" onclick="setF('dispatched',this)" data-filter-label="dispatched">Dispatched</button>
+        <button class="fp" onclick="setF('resolved',this)" data-filter-label="resolved">Resolved</button>
+      </div>
+      <div id="alert-list"></div>
+    </div>
+
+    <!-- VESSELS -->
+    <div class="tview" id="tv-vessels"><div id="vessel-list"></div></div>
+
+    <!-- ACTIVITY -->
+    <div class="tview" id="tv-activity"><div id="activity-log"></div></div>
+  </div>
+
+  <!-- CENTER -->
+  <div id="center">
+    <div id="wbar">
+      <div class="wi">🌊 <strong id="w-wave">—</strong></div>
+      <div class="wi">💨 <strong id="w-wind">—</strong></div>
+      <div class="wi">👁 <strong id="w-vis">—</strong></div>
+      <div class="wi">🌡 <strong id="w-temp">—</strong></div>
+      <span class="wrisk risk-mo" id="w-risk">MODERATE SEA</span>
+    </div>
+    <div id="map">
+      <div id="mleg">
+        <div class="legt" data-i18n="map">Map</div>
+        <div class="legr"><div class="legd" style="background:var(--red)"></div><span data-i18n="critical">Critical</span></div>
+        <div class="legr"><div class="legd" style="background:var(--rust)"></div><span data-i18n="high">High</span></div>
+        <div class="legr"><div class="legd" style="background:var(--amber)"></div><span data-i18n="medium">Medium</span></div>
+        <div class="legr"><div class="legd" style="background:var(--steel)"></div><span data-i18n="vessel">Vessel</span></div>
+      </div>
+    </div>
+    <div id="logbar"><span class="lpfx">SYS</span><span id="logmsg" data-i18n="gatewayInit">TARANG LoRa Gateway initialising...</span></div>
+  </div>
+
+  <!-- RIGHT DETAIL -->
+  <div id="right">
+    <div class="rphdr">
+      <div><div class="rpttl" id="rpttl" data-i18n="alertDetail">Alert Detail</div><div class="rpkn" id="rpkn" data-i18n="selectIncident">Select an incident</div><div class="rpsub" id="rpsub">-</div></div>
+      <button class="rpcls" onclick="closePanel()">✕</button>
+    </div>
+    <div class="rpbody" id="rpbody">
+      <div class="empty"><div class="eic">📡</div><div class="etxt" data-i18n="emptyDetail">Select an alert to view triage and actions.</div></div>
+    </div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+/* ══ DATA CONSTANTS ══ */
+const API = `${window.location.origin}/api`;
+const WSU = `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ws/dashboard`;
+const SHORE = [12.8698, 74.8431];
+const SCOL = {critical:'#C0392B',high:'#C4521A',medium:'#B8860B',low:'#1E7A4E'};
+const TLBL = {sos_manual:'Manual SOS',capsize:'Capsize',drift:'Drift',engine_fail:'Engine Failure',medical:'Medical Emergency',fire:'Fire on Vessel'};
+const TLKN = {sos_manual:'ತುರ್ತು SOS',capsize:'ದೋಣಿ ಮಗುಚಿದೆ',drift:'ಹರಿದಾಟ',engine_fail:'ಎಂಜಿನ್ ಸ್ಥಗಿತ',medical:'ಆರೋಗ್ಯ ತುರ್ತು',fire:'ದೋಣಿ ಬೆಂಕಿ'};
+const TICN = {sos_manual:'🆘',capsize:'🌀',drift:'〰️',engine_fail:'⚙️',medical:'🏥',fire:'🔥'};
+const VN  = {'VES-001':'Ananya Hegde','VES-002':'Kiran Shetty','VES-003':'Meera Gowda','VES-004':'Prakash Naik','VES-005':'Nandini Rao'};
+const VNKN= {'VES-001':'ಅನನ್ಯ ಹೆಗ್ಡೆ','VES-002':'ಕಿರಣ್ ಶೆಟ್ಟಿ','VES-003':'ಮೀರಾ ಗೌಡ','VES-004':'ಪ್ರಕಾಶ್ ನಾಯಕ್','VES-005':'ನಂದಿನಿ ರಾವ್'};
+const VO  = {'VES-001':'Raghavendra Hegde','VES-002':'Savitha Shetty','VES-003':'Basavaraj Gowda','VES-004':'Deepa Naik','VES-005':'Manjunath Rao'};
+const VP  = {'VES-001':[12.922,74.612],'VES-002':[12.794,74.832],'VES-003':[12.841,74.780],'VES-004':[12.885,74.710],'VES-005':[12.956,74.545]};
+const VB  = {'VES-001':87,'VES-002':52,'VES-003':94,'VES-004':23,'VES-005':71};
+const PN = ['Ananya Hegde','Kiran Shetty','Meera Gowda','Prakash Naik','Nandini Rao','Asha Kulkarni','Vikram Shetty','Kavya Rao','Sanjay Gowda','Pooja Naik','Rohit Hegde','Deepa Kamath','Harish Bhat','Sneha Nayak','Manjunath Rao','Shreya Acharya','Basavaraj Patil','Divya Udupa','Rakesh Poojary','Neha Alva','Ganesh Devadiga','Sahana Shetty','Pradeep Rao','Madhuri Gowda','Akshay Hegde','Rakshitha Naik','Vinay Kulkarni','Anitha Bhat','Darshan Kamath','Pavitra Acharya','Nikhil Poojary','Chaitra Alva'];
+const PNKN = ['ಅನನ್ಯ ಹೆಗ್ಡೆ','ಕಿರಣ್ ಶೆಟ್ಟಿ','ಮೀರಾ ಗೌಡ','ಪ್ರಕಾಶ್ ನಾಯಕ್','ನಂದಿನಿ ರಾವ್','ಆಶಾ ಕುಲಕರ್ಣಿ','ವಿಕ್ರಮ್ ಶೆಟ್ಟಿ','ಕಾವ್ಯ ರಾವ್','ಸಂಜಯ್ ಗೌಡ','ಪೂಜಾ ನಾಯಕ್','ರೋಹಿತ್ ಹೆಗ್ಡೆ','ದೀಪಾ ಕಾಮತ್','ಹರೀಶ್ ಭಟ್','ಸ್ನೇಹಾ ನಾಯಕ್','ಮಂಜುನಾಥ್ ರಾವ್','ಶ್ರೇಯಾ ಆಚಾರ್ಯ','ಬಸವರಾಜ್ ಪಾಟೀಲ್','ದಿವ್ಯಾ ಉಡುಪ','ರಾಕೇಶ್ ಪೂಜಾರಿ','ನೇಹಾ ಆಳ್ವ','ಗಣೇಶ್ ದೇವಾಡಿಗ','ಸಹನಾ ಶೆಟ್ಟಿ','ಪ್ರದೀಪ್ ರಾವ್','ಮಾಧುರಿ ಗೌಡ','ಅಕ್ಷಯ್ ಹೆಗ್ಡೆ','ರಕ್ಷಿತಾ ನಾಯಕ್','ವಿನಯ್ ಕುಲಕರ್ಣಿ','ಅನಿತಾ ಭಟ್','ದರ್ಶನ್ ಕಾಮತ್','ಪವಿತ್ರಾ ಆಚಾರ್ಯ','ನಿಖಿಲ್ ಪೂಜಾರಿ','ಚೈತ್ರಾ ಆಳ್ವ'];
+const LCFG = {
+  en:{rv:'UK English Female',ws:'en-IN',label:'English'},
+  kn:{rv:'Kannada Female',ws:'kn-IN',label:'ಕನ್ನಡ'}
+};
+const LTXT = {
+  en:(n,t,k)=>`Emergency alert! Vessel ${n} has sent a ${t} signal, ${k} kilometers from shore. Immediate rescue required.`,
+  kn:(n,t,k)=>`ತುರ್ತು ಎಚ್ಚರಿಕೆ. ${n} ಹಡಗಿನಿಂದ ${t} ಸಂದೇಶ ಬಂದಿದೆ. ಇದು ಕರಾವಳಿಯಿಂದ ${k} ಕಿಲೋಮೀಟರ್ ದೂರದಲ್ಲಿದೆ. ತಕ್ಷಣ ರಕ್ಷಣಾ ಕ್ರಮ ಅಗತ್ಯ.`
+};
+const UI = {
+  en:{
+    home:'Home',dashboard:'Dashboard',howItWorks:'How It Works',analytics:'Analytics',vessels:'Vessels',fleet:'Fleet',stats:'Stats',
+    mayday:'MAYDAY',activeSos:'Active SOS',total:'Live Queue',totalAlerts:'Live Queue',dispatched:'Dispatched',resolved:'Resolved',
+    operationsCenter:'Operations Center',station:'Mangaluru Station',alerts:'Alerts',activity:'Activity',all:'All',active:'Active',triaged:'Triaged',low:'Low',
+    map:'Map',critical:'Critical',high:'High',medium:'Medium',vessel:'Vessel',gatewayInit:'TARANG LoRa Gateway initialising...',
+    alertDetail:'Alert Detail',selectIncident:'Select an incident',emptyDetail:'Select an alert to view triage and actions.',
+    noAlerts:'No alerts',hitMayday:'No active incidents right now.',now:'now',ago:'min ago',km:'km',offshore:'offshore',
+    operationsActions:'Operations Center Actions',chooseResponse:'Choose the response you want to send from the Operations Center.',
+    assistStaged:'Assist Vessel Staged',preparedFrom:'Prepared from vessel view',dispatchCoastGuard:'Dispatch Coast Guard',
+    dispatchNearby:'Dispatch Nearby Vessel',notifyFamily:'Notify Family',markResolved:'Mark Resolved',
+    triage:'AI Triage',vesselId:'Vessel ID',distance:'Distance',location:'Location',battery:'Battery',hop:'Hop',meshRoute:'LoRa Mesh Route',
+    status:'Status',owner:'Owner',lastSeen:'Last Seen',coordinates:'Coordinates',recommendedRole:'Recommended Role',
+    standby:'Standby patrol',nearestAssist:'Nearest rescue assist',availableAssist:'Available assist asset',
+    vesselProfile:'Vessel Profile',focusMap:'Focus Map',closePanel:'Close Panel',
+    seaModerate:'MODERATE SEA',seaHigh:'HIGH RISK SEA',languageSet:'Language set to English',
+    sysOnline:'TARANG system online. Coastal monitoring started.',websocketLive:'LoRa Gateway live. WebSocket connected.',
+    stagedToast:'Operations Center ready',stagedNote:'Dispatch from the incident panel.',
+    stagedLog:'prepared as assist vessel for',coastGuardSent:'Coast Guard dispatched',nearbySent:'Nearby vessel dispatched',
+    familySent:'Family notified',resolvedOk:'Resolved successfully'
+  },
+  kn:{
+    home:'ಮುಖಪುಟ',dashboard:'ಡ್ಯಾಶ್ಬೋರ್ಡ್',howItWorks:'ಇದು ಹೇಗೆ ಕೆಲಸ ಮಾಡುತ್ತದೆ',analytics:'ವಿಶ್ಲೇಷಣೆ',vessels:'ಹಡಗುಗಳು',fleet:'ಪಡೆ',stats:'ಅಂಕಿಅಂಶ',
+    mayday:'ತುರ್ತು',activeSos:'ಸಕ್ರಿಯ SOS',total:'ಲೈವ್ ಕ್ಯೂ',totalAlerts:'ಲೈವ್ ಕ್ಯೂ',dispatched:'ಕಳುಹಿಸಲಾಗಿದೆ',resolved:'ಪರಿಹರಿಸಲಾಗಿದೆ',
+    operationsCenter:'ಕಾರ್ಯಾಚರಣೆ ಕೇಂದ್ರ',station:'ಮಂಗಳೂರು ಕೇಂದ್ರ',alerts:'ಎಚ್ಚರಿಕೆಗಳು',activity:'ಚಟುವಟಿಕೆ',all:'ಎಲ್ಲಾ',active:'ಸಕ್ರಿಯ',triaged:'ತ್ರಿಯೇಜ್',low:'ಕಡಿಮೆ',
+    map:'ನಕ್ಷೆ',critical:'ಗಂಭೀರ',high:'ಹೆಚ್ಚು',medium:'ಮಧ್ಯಮ',vessel:'ಹಡಗು',gatewayInit:'TARANG LoRa ಗೇಟ್‌ವೇ ಪ್ರಾರಂಭವಾಗುತ್ತಿದೆ...',
+    alertDetail:'ಎಚ್ಚರಿಕೆ ವಿವರ',selectIncident:'ಘಟನೆ ಆಯ್ಕೆಮಾಡಿ',emptyDetail:'ತ್ರಿಯೇಜ್ ಮತ್ತು ಕ್ರಮಗಳನ್ನು ನೋಡಲು ಎಚ್ಚರಿಕೆ ಆಯ್ಕೆಮಾಡಿ.',
+    noAlerts:'ಎಚ್ಚರಿಕೆಗಳಿಲ್ಲ',hitMayday:'ಈಗ ಸಕ್ರಿಯ ಘಟನೆಗಳಿಲ್ಲ.',now:'ಈಗ',ago:'ನಿಮಿಷಗಳ ಹಿಂದೆ',km:'ಕಿ.ಮೀ',offshore:'ಕರಾವಳಿಯಿಂದ ದೂರ',
+    operationsActions:'ಕಾರ್ಯಾಚರಣೆ ಕೇಂದ್ರದ ಕ್ರಮಗಳು',chooseResponse:'ಕಾರ್ಯಾಚರಣೆ ಕೇಂದ್ರದಿಂದ ಕಳುಹಿಸಬೇಕಾದ ಕ್ರಮವನ್ನು ಆಯ್ಕೆಮಾಡಿ.',
+    assistStaged:'ಸಹಾಯಕ ಹಡಗು ಸಿದ್ಧವಾಗಿದೆ',preparedFrom:'ಹಡಗು ನೋಟದಿಂದ ಸಿದ್ಧಪಡಿಸಲಾಗಿದೆ',dispatchCoastGuard:'ಕೋಸ್ಟ್ ಗಾರ್ಡ್ ಕಳುಹಿಸಿ',
+    dispatchNearby:'ಹತ್ತಿರದ ಹಡಗು ಕಳುಹಿಸಿ',notifyFamily:'ಕುಟುಂಬಕ್ಕೆ ತಿಳಿಸಿ',markResolved:'ಪರಿಹರಿಸಲಾಗಿದೆ ಎಂದು ಗುರುತಿಸಿ',
+    triage:'AI ತ್ರಿಯೇಜ್',vesselId:'ಹಡಗು ID',distance:'ದೂರ',location:'ಸ್ಥಳ',battery:'ಬ್ಯಾಟರಿ',hop:'ಹಾಪ್',meshRoute:'LoRa ಮೆಶ್ ಮಾರ್ಗ',
+    status:'ಸ್ಥಿತಿ',owner:'ಮಾಲೀಕ',lastSeen:'ಕೊನೆಯ ಮಾಹಿತಿ',coordinates:'ನಿರ್ದೇಶಾಂಕಗಳು',recommendedRole:'ಶಿಫಾರಸು ಮಾಡಿದ ಪಾತ್ರ',
+    standby:'ಸಿದ್ಧತಾ ಪಹರೆ',nearestAssist:'ಹತ್ತಿರದ ರಕ್ಷಣಾ ಸಹಾಯ',availableAssist:'ಲಭ್ಯ ಸಹಾಯಕ ಹಡಗು',
+    vesselProfile:'ಹಡಗು ವಿವರ',focusMap:'ನಕ್ಷೆ ಕೇಂದ್ರೀಕರಿಸಿ',closePanel:'ಪ್ಯಾನೆಲ್ ಮುಚ್ಚಿ',
+    seaModerate:'ಮಧ್ಯಮ ಸಮುದ್ರ',seaHigh:'ಹೆಚ್ಚಿನ ಅಪಾಯದ ಸಮುದ್ರ',languageSet:'ಭಾಷೆ ಕನ್ನಡಕ್ಕೆ ಬದಲಾಯಿತು',
+    sysOnline:'TARANG ವ್ಯವಸ್ಥೆ ಚಾಲನೆಯಲ್ಲಿದೆ. ಕರಾವಳಿ ಮೇಲ್ವಿಚಾರಣೆ ಆರಂಭವಾಗಿದೆ.',websocketLive:'LoRa ಗೇಟ್‌ವೇ ಲೈವ್. WebSocket ಸಂಪರ್ಕವಾಗಿದೆ.',
+    stagedToast:'ಕಾರ್ಯಾಚರಣೆ ಕೇಂದ್ರ ಸಿದ್ಧ',stagedNote:'ಘಟನೆ ಪ್ಯಾನೆಲ್‌ನಿಂದ ಕಳುಹಿಸಿ.',
+    stagedLog:'ಸಹಾಯಕ ಹಡಗಾಗಿ ಸಿದ್ಧಪಡಿಸಲಾಗಿದೆ',coastGuardSent:'ಕೋಸ್ಟ್ ಗಾರ್ಡ್ ಕಳುಹಿಸಲಾಗಿದೆ',nearbySent:'ಹತ್ತಿರದ ಹಡಗು ಕಳುಹಿಸಲಾಗಿದೆ',
+    familySent:'ಕುಟುಂಬಕ್ಕೆ ತಿಳಿಸಲಾಗಿದೆ',resolvedOk:'ಯಶಸ್ವಿಯಾಗಿ ಪರಿಹರಿಸಲಾಗಿದೆ'
+  }
+};
+
+/* ══ STATE ══ */
+let alerts=[], vessels=[], actLog=[];
+let selId=null, selVesselId=null, pendingAssistVesselId=null, filterVal='all', selLang='en';
+let aMkr={}, vMkr={}, vTrail={}, vPts={}, rMkr={}, etaT={}, rescueState={}, isolatedAlertId=null;
+let profileNameIndex={};
+let _did=100;
+
+function tr(key){return (UI[selLang]&&UI[selLang][key]) || UI.en[key] || key;}
+function typeLabel(type){return selLang==='kn' ? (TLKN[type]||type) : (TLBL[type]||type);}
+function vesselLabel(id,name){return selLang==='kn' ? (VNKN[id]||name||id) : (VN[id]||name||id);}
+function profileLabel(a){
+  const id=a.id||a.alert_id||a.vessel_id||'profile';
+  if(profileNameIndex[id]===undefined) profileNameIndex[id]=Object.keys(profileNameIndex).length;
+  const idx=profileNameIndex[id];
+  const names=selLang==='kn'?PNKN:PN;
+  const base=names[idx%names.length];
+  return idx>=names.length ? `${base} ${Math.floor(idx/names.length)+1}` : base;
+}
+function statusLabel(status){
+  const s=status||'active';
+  return tr(s) || s;
+}
+function severityLabel(sev){
+  const s=sev||'high';
+  return tr(s) || s;
+}
+function localizedSummary(a){
+  const name=profileLabel(a);
+  const kind=typeLabel(a.alert_type);
+  const dist=a.distance_km||'?';
+  if(selLang==='kn') return `${name} ಹಡಗಿನಿಂದ ${kind} ಎಚ್ಚರಿಕೆ ಬಂದಿದೆ. ಇದು ಕರಾವಳಿಯಿಂದ ${dist} ${tr('km')} ದೂರದಲ್ಲಿದೆ. ತೀವ್ರತೆ ${severityLabel(a.severity)}. ತಕ್ಷಣ ಕಾರ್ಯಾಚರಣೆ ಅಗತ್ಯ.`;
+  return `${name} reported ${kind}, ${dist} ${tr('km')} ${tr('offshore')}. Severity is ${severityLabel(a.severity)}. Immediate response is recommended.`;
+}
+function rescueStageLabels(){
+  return selLang==='kn'
+    ? ['ನಿಯೋಜನೆ','ಹಡಗು ಹೊರಟಿದೆ','ಮಾರ್ಗದಲ್ಲಿ','ತಲುಪುತ್ತಿದೆ']
+    : ['Assigned','Picked up','On the way','Arriving'];
+}
+function trackerHtml(id){
+  const st=rescueState[id];
+  if(!st) return '';
+  const labels=rescueStageLabels();
+  const p=Math.max(0,Math.min(100,Math.round(st.progress||0)));
+  const active=Math.min(labels.length-1,Math.floor(p/34));
+  return `<div class="rescue-track">
+    <div class="rtop">
+      <div><div class="rtlabel">${selLang==='kn'?'ಲೈವ್ ರಕ್ಷಣಾ ಟ್ರ್ಯಾಕರ್':'Live rescue tracker'}</div><div class="rtstatus" id="rt-status-${id}">${st.status}</div></div>
+      <div class="rteta" id="rt-eta-${id}">${st.eta||''}</div>
+    </div>
+    <div class="rtrack"><div class="rfill" id="rt-fill-${id}" style="width:${p}%"></div></div>
+    <div class="rsteps">${labels.map((l,i)=>`<div class="rstep ${i<=active?'on':''}" id="rt-step-${id}-${i}"><span class="rdot"></span><span>${l}</span></div>`).join('')}</div>
+  </div>`;
+}
+function startTracker(id,mode,etaText){
+  rescueState[id]={mode,progress:5,status:mode==='sms'?(selLang==='kn'?'ಸಂದೇಶ ಸಿದ್ಧಪಡಿಸಲಾಗುತ್ತಿದೆ':'Preparing family message'):(selLang==='kn'?'ರಕ್ಷಣಾ ಹಡಗು ನಿಯೋಜಿಸಲಾಗಿದೆ':'Rescue vessel assigned'),eta:etaText||''};
+  const a=alerts.find(x=>(x.id||x.alert_id)===id);
+  if(a&&selId===id) renderDetail(a);
+}
+function updateTracker(id,progress,status,etaText){
+  const st=rescueState[id]; if(!st) return;
+  st.progress=progress; st.status=status; if(etaText!==undefined) st.eta=etaText;
+  const fill=document.getElementById(`rt-fill-${id}`);
+  const stat=document.getElementById(`rt-status-${id}`);
+  const eta=document.getElementById(`rt-eta-${id}`);
+  if(fill) fill.style.width=Math.max(0,Math.min(100,Math.round(progress)))+'%';
+  if(stat) stat.textContent=status;
+  if(eta) eta.textContent=st.eta||'';
+  const active=Math.min(3,Math.floor(progress/34));
+  for(let i=0;i<4;i++){const step=document.getElementById(`rt-step-${id}-${i}`); if(step) step.classList.toggle('on',i<=active);}
+}
+function updateStaticLanguage(){
+  document.body.classList.toggle('lang-kn',selLang==='kn');
+  document.documentElement.lang=selLang==='kn'?'kn':'en';
+  document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=tr(el.dataset.i18n);});
+  document.querySelectorAll('[data-tab-label]').forEach(el=>{el.textContent=tr(el.dataset.tabLabel);});
+  document.querySelectorAll('[data-filter-label]').forEach(el=>{el.textContent=tr(el.dataset.filterLabel);});
+  const risk=document.getElementById('w-risk');
+  if(risk) risk.textContent=risk.classList.contains('risk-hi')?tr('seaHigh'):tr('seaModerate');
+}
+
+/* ══ CLOCK ══ */
+setInterval(()=>{document.getElementById('nav-clk').textContent=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'})+' IST'},1000);
+
+/* ══ SVG ICON HELPERS (defined before map init) ══ */
+function alertSVG(sev,resolved){
+  if(resolved) return `<div style="width:24px;height:24px;display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="8" fill="#1E7A4E" stroke="#F5F0E8" stroke-width="1.5"/><polyline points="5,9 8,12 13,6" fill="none" stroke="#F5F0E8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;
+  const c=SCOL[sev]||'#C4521A';
+  return `<div class="alert-mkr"><div class="ring" style="border-color:${c}"></div><div class="ring2" style="border-color:${c}"></div><div class="core" style="background:${c}"><svg width="12" height="12" viewBox="0 0 18 18" fill="#fff"><path d="M9 3L15.5 14H2.5L9 3Z"/><rect x="8" y="7" width="2" height="4" fill="${c}"/><rect x="8" y="12" width="2" height="2" fill="${c}"/></svg></div></div>`;
+}
+function vesselSVG(bat){
+  const c=bat>60?'#2E6B8A':bat>30?'#B8860B':'#C0392B';
+  return `<div class="vessel-mkr"><svg width="22" height="18" viewBox="0 0 22 18" fill="none"><path d="M11 1L20 13H2L11 1Z" fill="${c}" stroke="#F5F0E8" stroke-width="1.2"/><rect x="7.5" y="11" width="7" height="5" fill="${c}" stroke="#F5F0E8" stroke-width="1"/><line x1="11" y1="1" x2="11" y2="8" stroke="#F5F0E8" stroke-width="1" opacity=".6"/></svg></div>`;
+}
+function shoreStationSVG(){
+  return `<div style="width:24px;height:28px"><svg width="24" height="28" viewBox="0 0 24 28" fill="none"><rect x="8" y="15" width="8" height="12" fill="#1E7A4E" stroke="#F5F0E8" stroke-width="1.2"/><rect x="4" y="9" width="16" height="7" fill="#1E7A4E" stroke="#F5F0E8" stroke-width="1.2"/><line x1="12" y1="1" x2="12" y2="9" stroke="#F5F0E8" stroke-width="1.5"/><line x1="7" y1="4" x2="12" y2="1" stroke="#8FA8B8" stroke-width="1"/><line x1="17" y1="4" x2="12" y2="1" stroke="#8FA8B8" stroke-width="1"/><circle cx="12" cy="1" r="2" fill="#C4521A"/></svg></div>`;
+}
+function rescueBoatSVG(){
+  return `<div class="rescue-mkr live-boat"><svg width="34" height="24" viewBox="0 0 34 24" fill="none"><ellipse cx="17" cy="20" rx="13" ry="3" fill="#2E6B8A" opacity=".35"/><path d="M3 16L8 7H26L31 16Z" fill="#C4521A" stroke="#F5F0E8" stroke-width="1.4"/><rect x="12" y="3" width="10" height="7" rx="1" fill="#C4521A" stroke="#F5F0E8" stroke-width="1"/><circle cx="24" cy="13" r="2" fill="#F5F0E8"/><path d="M3 16Q10 22 17 22Q24 22 31 16" fill="#2E6B8A"/><line x1="6" y1="15" x2="28" y2="15" stroke="#F5F0E8" stroke-width=".9" stroke-dasharray="3 3"/></svg></div>`;
+}
+
+/* ══ MAP ══ */
+const map=L.map('map',{center:SHORE,zoom:11,zoomControl:false,attributionControl:false});
+L.control.zoom({position:'bottomright'}).addTo(map);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,opacity:.5}).addTo(map);
+L.circle(SHORE,{radius:20000,color:'#1E7A4E',weight:1,fillOpacity:.02,dashArray:'5 5'}).addTo(map);
+L.marker(SHORE,{icon:L.divIcon({className:'',iconSize:[24,28],iconAnchor:[12,28],html:shoreStationSVG()})}).addTo(map)
+ .bindPopup(`<div class="mpop"><div class="mptl">${selLang==='kn'?'ಕರಾವಳಿ ಕೇಂದ್ರ - ಮಂಗಳೂರು':'Shore Base - Mangaluru'}</div><div class="mpr">${selLang==='kn'?'ಕೋಸ್ಟ್ ಗಾರ್ಡ್ ಕೇಂದ್ರ':'ICG Station'}</div><div class="mpr">${selLang==='kn'?'4G ಸಂಪರ್ಕ ಸಕ್ರಿಯ':'4G uplink active'}</div></div>`);
+
+/* ══ WEBSOCKET ══ */
+let ws;
+let backendOnline=false;
+async function checkBackend(){
+  try{
+    const response=await fetch('/health',{cache:'no-store'});
+    backendOnline=response.ok;
+  }catch(error){backendOnline=false;}
+  setLive(backendOnline || (ws && ws.readyState===WebSocket.OPEN));
+  return backendOnline;
+}
+function wsConn(){
+  try{
+    ws=new WebSocket(WSU);
+    ws.onopen=()=>{setLive(true);syslog(tr('websocketLive'));};
+    ws.onclose=()=>{checkBackend();setTimeout(wsConn,10000);};
+    ws.onerror=()=>ws.close();
+    ws.onmessage=(e)=>{try{onWS(JSON.parse(e.data));}catch{}};
+  }catch{checkBackend();}
+}
+function setLive(on){
+  const b=document.getElementById('ws-badge');
+  b.textContent=on?'🟢 LIVE':'⚫ OFFLINE';
+  b.className=on?'live':'';
+  // Also update mobile badge
+  const mb=document.getElementById('mob-ws-badge');
+  if(mb){mb.textContent=on?'🟢 LIVE':'⚫ OFFLINE';mb.style.borderColor=on?'#1E7A4E':'#C0392B';mb.style.color=on?'#1E7A4E':'#C0392B';}
+}
+function onWS(msg){
+  if(msg.type==='new_alert'){
+    const a={...msg.data,id:msg.data.alert_id||msg.data.id};
+    alerts.unshift(a);
+    renderList(true);pinAlert(a);syncKPI();
+    addAct(TICN[a.alert_type]||'SOS',`${vesselLabel(a.vessel_id,a.vessel_name)} - ${typeLabel(a.alert_type)} [${severityLabel(a.severity)}]`);
+    toast(`${TICN[a.alert_type]||'SOS'} ${vesselLabel(a.vessel_id,a.vessel_name)}`,`${typeLabel(a.alert_type)} - ${severityLabel(a.severity)}`,a.severity==='critical'?'tr':'');
+    syslog(`DistressSignal: ${a.vessel_name} @ ${parseFloat(a.lat||0).toFixed(3)}, ${parseFloat(a.lng||0).toFixed(3)}`);
+    autoAnnounce(a);
+    meshAnim(a);
+  }
+  if(msg.type==='alert_update'){
+    const a=alerts.find(x=>x.id===msg.data.alert_id);
+    if(a){a.status=msg.data.status;renderList();if(selId===a.id)renderDetail(a);syncKPI();}
+  }
+}
+
+/* ══ VOICE ══ */
+function ensureAudio(){
+  if(!window.__tarangAudio) window.__tarangAudio=new (window.AudioContext||window.webkitAudioContext)();
+  if(window.__tarangAudio.state==='suspended') window.__tarangAudio.resume();
+  return window.__tarangAudio;
+}
+function tone(freq,dur=120,type='sine',delay=0,gain=.08){
+  try{const ac=ensureAudio();const t=ac.currentTime+delay;const o=ac.createOscillator();const g=ac.createGain();o.type=type;o.frequency.setValueAtTime(freq,t);g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(gain,t+.015);g.gain.exponentialRampToValueAtTime(0.0001,t+dur/1000);o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+dur/1000+.02);}catch{}
+}
+function playSound(kind){
+  const map={profile:[[520,90,'sine',0,.05],[740,110,'sine',.09,.05]],sos:[[880,140,'square',0,.07],[880,140,'square',.19,.07],[560,220,'sawtooth',.38,.06]],dispatch:[[420,90,'triangle',0,.06],[620,110,'triangle',.11,.06],[860,160,'triangle',.24,.06]],coast:[[360,140,'sawtooth',0,.055],[520,140,'sawtooth',.16,.055],[720,180,'sawtooth',.34,.055]],sms:[[720,70,'sine',0,.045],[980,90,'sine',.09,.045]],resolve:[[640,100,'triangle',0,.05],[820,100,'triangle',.11,.05],[1040,180,'triangle',.22,.05]],language:[[500,80,'sine',0,.04],[650,90,'sine',.1,.04]],close:[[440,80,'sine',0,.035]],error:[[220,180,'sawtooth',0,.06]]};
+  (map[kind]||map.profile).forEach(x=>tone(...x));
+}
+function distressVoiceIndex(a){
+  const id=String(a.id||a.alert_id||a.vessel_id||'0');
+  let n=0; for(const ch of id) n=(n+ch.charCodeAt(0))%5;
+  return n;
+}
+function distressVoiceText(a){
+  const name=profileLabel(a), dist=a.distance_km||'?';
+  const en=[`This is ${name}. We are in danger. Our boat needs immediate help. We are about ${dist} kilometers from shore. Please send rescue now.`,`Control room, this is ${name}. The sea is rough and we cannot manage. Please track our location and send a rescue boat.`,`Mayday, this is ${name}. We are scared and need help quickly. Our position is on your map. Please respond.`,`This is ${name} calling from the boat. Engine support and rescue are needed. Please do not delay.`,`Control room, ${name} speaking. We can hear the alarm. Please guide rescue to our location.`];
+  const kn=[`ನಾನು ${name}. ನಾವು ಅಪಾಯದಲ್ಲಿದ್ದೇವೆ. ದಯವಿಟ್ಟು ತಕ್ಷಣ ರಕ್ಷಣಾ ಹಡಗು ಕಳುಹಿಸಿ.`,`ಕಾರ್ಯಾಚರಣೆ ಕೇಂದ್ರ, ನಾನು ${name}. ಸಮುದ್ರ ತುಂಬಾ ಕಷ್ಟವಾಗಿದೆ. ನಮ್ಮ ಸ್ಥಳಕ್ಕೆ ಸಹಾಯ ಕಳುಹಿಸಿ.`,`ತುರ್ತು ಕರೆ, ನಾನು ${name}. ನಮಗೆ ಬೇಗ ಸಹಾಯ ಬೇಕು. ನಮ್ಮ ಸ್ಥಳ ನಕ್ಷೆಯಲ್ಲಿ ಇದೆ.`,`ನಾನು ${name} ದೋಣಿಯಿಂದ ಮಾತನಾಡುತ್ತಿದ್ದೇನೆ. ಎಂಜಿನ್ ಸಹಾಯ ಮತ್ತು ರಕ್ಷಣಾ ಸಹಾಯ ಬೇಕು.`,`ಕಾರ್ಯಾಚರಣೆ ಕೇಂದ್ರ, ${name} ಮಾತನಾಡುತ್ತಿದ್ದೇನೆ. ದಯವಿಟ್ಟು ನಮ್ಮ ಸ್ಥಳಕ್ಕೆ ರಕ್ಷಣೆಯನ್ನು ಕಳುಹಿಸಿ.`];
+  return selLang==='kn'?kn[distressVoiceIndex(a)]:en[distressVoiceIndex(a)];
+}
+function playLocalVoice(a){
+  const lang=selLang==='kn'?'kn':'en';
+  const src=`/static/assets/voice/${lang}-${distressVoiceIndex(a)}.wav`;
+  return new Promise((resolve,reject)=>{
+    if(window.__profileVoiceAudio){window.__profileVoiceAudio.pause();window.__profileVoiceAudio.currentTime=0;}
+    const au=new Audio(src);
+    window.__profileVoiceAudio=au;
+    au.volume=1;
+    au.preload='auto';
+    au.onerror=()=>reject(new Error('local-voice-unavailable'));
+    au.oncanplaythrough=()=>{
+      au.play().then(resolve).catch(reject);
+    };
+    au.load();
+  });
+}
+async function playServerVoice(a){
+  return playServerText(distressVoiceText(a), selLang==='kn'?'kn':'en');
+}
+async function playServerText(text, lang){
+  const res=await fetch('/api/voice/tts',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({text,lang})
+  });
+  if(!res.ok) throw new Error('tts-unavailable');
+  const blob=await res.blob();
+  const src=URL.createObjectURL(blob);
+  if(window.__profileVoiceAudio){
+    window.__profileVoiceAudio.pause();
+    window.__profileVoiceAudio.currentTime=0;
+    if(window.__profileVoiceUrl) URL.revokeObjectURL(window.__profileVoiceUrl);
+  }
+  const au=new Audio(src);
+  window.__profileVoiceUrl=src;
+  window.__profileVoiceAudio=au;
+  au.volume=1;
+  return au.play();
+}
+function playProfileVoice(a){
+  playSound('profile');
+  setTimeout(()=>{
+    if(selLang==='kn'){
+      playLocalVoice(a).catch(()=>playServerVoice(a).catch(()=>{}));
+      return;
+    }
+    playServerVoice(a)
+      .catch(()=>playLocalVoice(a))
+      .catch(()=>speak(distressVoiceText(a),selLang));
+  },180);
+}
+function speak(text, lang){
+  const cfg=LCFG[lang]||LCFG.en;
+  if(lang==='kn'){
+    playServerText(text,'kn').catch(()=>{});
+    return;
+  }
+  // ResponsiveVoice (works Chrome, Firefox, Safari, Edge)
+  if(window.responsiveVoice){
+    responsiveVoice.cancel();
+    responsiveVoice.speak(text, cfg.rv, {pitch:1, rate:0.88, volume:1,
+      onstart:()=>console.log('RV speaking:',cfg.rv),
+      onerror:(e)=>{ console.warn('RV error, fallback',e); wsFallback(text,cfg.ws); }
+    });
+    return;
+  }
+  wsFallback(text, cfg.ws);
+}
+function wsFallback(text, wsLang){
+  if(!window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang=wsLang; u.rate=0.9; u.volume=1;
+  let spoken=false;
+  // Wait for voices to load (needed in Chrome)
+  const trySpeak=()=>{
+    if(spoken) return;
+    spoken=true;
+    const vs=speechSynthesis.getVoices();
+    const m=vs.find(v=>v.lang===wsLang)||vs.find(v=>v.lang.startsWith(wsLang.split('-')[0]));
+    if(m) u.voice=m;
+    speechSynthesis.speak(u);
+  };
+  if(speechSynthesis.getVoices().length) trySpeak();
+  else speechSynthesis.onvoiceschanged=trySpeak;
+  setTimeout(trySpeak,700);
+}
+function setLang(lang){playSound('language');
+  selLang=lang;
+  document.querySelectorAll('.lang-btn').forEach(b=>{
+    b.style.background=b.dataset.lang===lang?'var(--rust)':'transparent';
+    b.style.color=b.dataset.lang===lang?'#fff':'var(--mist)';
+    b.style.borderColor=b.dataset.lang===lang?'var(--rust)':'rgba(245,240,232,.2)';
+  });
+  updateStaticLanguage();
+  renderList();
+  renderVessels();
+  // Keep operational data current even when the hosting layer does not expose WebSockets.
+  setInterval(async()=>{
+    try{
+      const [nextAlerts,nextVessels]=await Promise.all([
+        apiFetch('/alerts?limit=100'),apiFetch('/vessels')
+      ]);
+      alerts=nextAlerts.map(a=>({...a,id:a.id||a.alert_id}));
+      vessels=nextVessels;
+      renderList();renderVessels();syncKPI();setLive(true);
+    }catch{checkBackend();}
+  },8000);
+  alerts.forEach(pinAlert);
+  vessels.forEach(pinVessel);
+  if(selId){
+    const a=alerts.find(x=>(x.id||x.alert_id)===selId);
+    if(a) renderDetail(a);
+  }else if(selVesselId){
+    const v=vessels.find(x=>x.id===selVesselId);
+    if(v) renderVesselDetail(v);
+  }
+  toast(LCFG[lang]?.label||'Language',tr('languageSet'),'tb');
+}
+function autoAnnounce(a){
+  playSound('sos');
+  if(selLang==='kn'){
+    playLocalVoice(a).catch(()=>playServerVoice(a).catch(()=>{}));
+    return;
+  }
+  playServerVoice(a)
+    .catch(()=>playLocalVoice(a))
+    .catch(()=>speak(distressVoiceText(a),selLang));
+}
+
+/* ══ API ══ */
+async function apiFetch(path,opts){
+  const r=await fetch(API+path,opts||{});
+  if(!r.ok) throw new Error(r.status);
+  return r.json();
+}
+
+/* ══ INIT ══ */
+async function init(){
+  updateStaticLanguage();
+  checkBackend();
+  setInterval(checkBackend,15000);
+  wsConn();
+  // Alerts
+  try{
+    const d=await apiFetch('/alerts?limit=100');
+    alerts=d.map(a=>({...a,id:a.id||a.alert_id}));
+    renderList();alerts.forEach(pinAlert);syncKPI();
+  }catch{syslog(selLang==='kn'?'ಪರೀಕ್ಷಾ ಡೇಟಾ ಲೋಡ್ ಆಗುತ್ತಿದೆ':'Demo mode loading data');seedDemo();}
+  // Vessels
+  try{
+    vessels=await apiFetch('/vessels');
+    vessels.forEach(pinVessel);
+  }catch{
+    vessels=Object.entries(VN).map(([id,name])=>({id,name,owner:VO[id],status:'active',lat:VP[id][0],lng:VP[id][1],battery_pct:VB[id]||80}));
+    vessels.forEach(pinVessel);
+  }
+  renderVessels();
+  // Weather
+  try{
+    const w=await apiFetch('/weather');
+    document.getElementById('w-wave').textContent=w.wave_height_m?w.wave_height_m.toFixed(1)+' m':'—';
+    document.getElementById('w-wind').textContent=w.wind_speed_ms?w.wind_speed_ms+' m/s':'—';
+    document.getElementById('w-vis').textContent=w.visibility_m?(w.visibility_m/1000).toFixed(0)+' '+tr('km'):'-';
+    document.getElementById('w-temp').textContent=w.temp_c?w.temp_c+'°C':'29°C';
+    const hi=(w.wave_height_m||0)>3||(w.wind_speed_ms||0)>12;
+    const rb=document.getElementById('w-risk');
+    rb.textContent=hi?tr('seaHigh'):tr('seaModerate');
+    rb.className='wrisk '+(hi?'risk-hi':'risk-mo');
+  }catch{
+    document.getElementById('w-wave').textContent='1.3 m';
+    document.getElementById('w-wind').textContent='6.0 m/s';
+    document.getElementById('w-vis').textContent='9 km';
+    document.getElementById('w-temp').textContent='29°C';
+  }
+  syslog(tr('sysOnline'));
+  addAct('OK',tr('sysOnline'));
+}
+
+/* ══ RENDER ALERT LIST ══ */
+function renderList(hi=false){
+  const el=document.getElementById('alert-list');
+  const severityRank={critical:0,high:1,medium:2,low:3};
+  const statusRank={active:0,triaged:1,dispatched:2,resolved:3};
+  const show=(filterVal==='all'
+    ? alerts.filter(a=>(a.status||'active')!=='resolved')
+    : alerts.filter(a=>a.status===filterVal))
+    .slice()
+    .sort((a,b)=>{
+      const sa=statusRank[a.status||'active']??9, sb=statusRank[b.status||'active']??9;
+      if(sa!==sb) return sa-sb;
+      const va=severityRank[a.severity||'high']??9, vb=severityRank[b.severity||'high']??9;
+      if(va!==vb) return va-vb;
+      return new Date(b.created_at||0)-new Date(a.created_at||0);
+    });
+  if(!show.length){
+    el.innerHTML=`<div class="empty"><div class="eic">SOS</div><div class="etxt">${tr('noAlerts')}<br><small>${tr('hitMayday')}</small></div></div>`;
+    return;
+  }
+  el.innerHTML=show.map((a,i)=>{
+    const id=a.id||a.alert_id;
+    const sc={critical:'ac-cv',high:'ac-hg',medium:'ac-md',low:'ac-lw'}[a.severity]||'ac-hg';
+    const alertTime=new Date(a.created_at).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    const ms=Math.floor((Date.now()-new Date(a.created_at).getTime())/60000);
+    const es=ms<1?tr('now'):`${ms} ${tr('ago')}`;
+    const name=profileLabel(a);
+    return `<div class="ac ${sc}${selId===id?' sel':''}${hi&&i===0?' ac-new':''}" onclick="selAlert('${id}')">
+      <div class="ac-top">
+        <div><div class="ac-name">${name}</div><div class="ac-kn">${a.vessel_id||''}</div></div>
+        <span class="chip chip-${a.status||'active'}">${statusLabel(a.status)}</span>
+      </div>
+      <div class="ac-type">${TICN[a.alert_type]||'SOS'} ${typeLabel(a.alert_type)}</div>
+      <div class="ac-meta"><span>${a.distance_km||'?'} ${tr('km')}</span><span class="ac-timer">${es}</span><span class="sev sev-${a.severity}">${severityLabel(a.severity)}</span></div>
+    </div>`;
+  }).join('');
+}
+
+function setFilterValue(f){
+  filterVal=f;
+  document.querySelectorAll('.fp').forEach(p=>{
+    const label=p.getAttribute('data-filter-label');
+    p.classList.toggle('on',label===f);
+  });
+}
+function setF(f,el){filterVal=f;document.querySelectorAll('.fp').forEach(p=>p.classList.remove('on'));el.classList.add('on');renderList();}
+function pendingAlerts(excludeId){return alerts.filter(a=>{const id=a.id||a.alert_id;return id!==excludeId && (a.status==='active'||a.status==='triaged'||a.status==='dispatched');});}
+function showNextPendingAfter(resolvedId){
+  const next=pendingAlerts(resolvedId)[0];
+  if(next){
+    setFilterValue('all');
+    selId=next.id||next.alert_id;
+    renderList();renderDetail(next);
+    document.getElementById('right').classList.add('open');
+    if(next.lat&&next.lng) map.flyTo([next.lat,next.lng],13,{duration:1});
+    toast(selLang==='kn'?'ಮುಂದಿನ ಬಾಕಿ ಘಟನೆ':'Next pending case',profileLabel(next),'tb');
+    return true;
+  }
+  setFilterValue('all');
+  renderList();
+  return false;
+}
+function focusCaseList(){
+  const left=document.getElementById('left');
+  const center=document.getElementById('center');
+  if(window.innerWidth<=768){
+    if(left) left.scrollIntoView({behavior:'smooth',block:'start'});
+  }else if(center){
+    center.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+}
+function switchTab(tab,el){document.querySelectorAll('.ltab').forEach(b=>b.classList.remove('on'));document.querySelectorAll('.tview').forEach(v=>v.classList.remove('on'));el.classList.add('on');document.getElementById('tv-'+tab).classList.add('on');}
+function focusMobileOps(){
+  if(window.innerWidth>768) return;
+  const center=document.getElementById('center');
+  const right=document.getElementById('right');
+  if(center) center.scrollIntoView({behavior:'smooth',block:'start'});
+  setTimeout(()=>{ if(right&&right.classList.contains('open')) right.scrollIntoView({behavior:'smooth',block:'start'}); },750);
+}
+function showDispatchMap(){
+  const center=document.getElementById('center');
+  if(center) center.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function hideAllMapMarkers(){
+  Object.values(aMkr).forEach(m=>{if(m&&map.hasLayer(m)) map.removeLayer(m);});
+  Object.values(vMkr).forEach(m=>{if(m&&map.hasLayer(m)) map.removeLayer(m);});
+  Object.values(vTrail).forEach(l=>{if(l&&map.hasLayer(l)) map.removeLayer(l);});
+}
+function restoreMapMarkers(){
+  isolatedAlertId=null;
+  alerts.forEach(pinAlert);
+  vessels.forEach(pinVessel);
+}
+function isolateDispatchMap(alertId){
+  isolatedAlertId=alertId;
+  hideAllMapMarkers();
+  const a=alerts.find(x=>(x.id||x.alert_id)===alertId);
+  if(a) pinAlert(a);
+}
+function completeDispatch(alertId,body){
+  const a=alerts.find(x=>(x.id||x.alert_id)===alertId);
+  if(!a) return;
+  a.status='resolved';
+  updateTracker(alertId,100,selLang==='kn'?'ರಕ್ಷಣಾ ಕಾರ್ಯ ಪೂರ್ಣಗೊಂಡಿದೆ':'Rescue completed',selLang==='kn'?'ಸುರಕ್ಷಿತ':'Safe');
+  if(etaT[alertId]){clearInterval(etaT[alertId]);delete etaT[alertId];}
+  renderList();renderDetail(a);syncKPI();pinAlert(a);
+  addAct('OK',`${tr('resolvedOk')} - ${profileLabel(a)}`);
+  syslog(body||`Alert ${alertId} resolved - ${profileLabel(a)} safe`);
+  setTimeout(()=>showNextPendingAfter(alertId),350);
+}
+
+/* ══ SELECT ALERT ══ */
+function selAlert(id){
+  if(isolatedAlertId && isolatedAlertId!==id) restoreMapMarkers();
+  selId=id;
+  const a=alerts.find(x=>(x.id||x.alert_id)===id);
+  if(!a) return;
+  playProfileVoice(a);
+  renderList();renderDetail(a);
+  document.getElementById('right').classList.add('open');
+  if(aMkr[id]){map.flyTo([a.lat,a.lng],13,{duration:1.2});setTimeout(()=>aMkr[id].openPopup(),1300);}
+  focusMobileOps();
+}
+function bestAlertForVessel(v){
+  const active=alerts.filter(a=>a.status==='active' || a.status==='triaged');
+  if(!active.length) return null;
+  return active
+    .map(a=>{
+      const dx=parseFloat(v.lat||0)-parseFloat(a.lat||0);
+      const dy=parseFloat(v.lng||0)-parseFloat(a.lng||0);
+      const distanceScore=(dx*dx)+(dy*dy);
+      const severityBias=a.severity==='critical' ? -1 : a.severity==='high' ? -0.35 : 0;
+      return { alert:a, score:distanceScore+severityBias };
+    })
+    .sort((a,b)=>a.score-b.score)[0].alert;
+}
+function selVessel(id){
+  if(isolatedAlertId) restoreMapMarkers();
+  selVesselId=id;
+  const v=vessels.find(x=>x.id===id);
+  if(!v) return;
+  const target=bestAlertForVessel(v);
+  renderVessels();
+  if(target){
+    rescueFromVessel(v.id, target.id||target.alert_id);
+    return;
+  }
+  selId=null;
+  renderList();
+  renderVesselDetail(v);
+  document.getElementById('right').classList.add('open');
+  if(v.lat&&v.lng){
+    map.flyTo([v.lat,v.lng],12,{duration:1.1});
+    if(vMkr[id]) setTimeout(()=>vMkr[id].openPopup(),1200);
+  }
+  focusMobileOps();
+}
+function closePanel(){
+  playSound('close');
+  restoreMapMarkers();
+  document.getElementById('right').classList.remove('open');
+  selId=null;selVesselId=null;pendingAssistVesselId=null;
+  setFilterValue('all');
+  renderList();renderVessels();
+  focusCaseList();
+}
+
+/* ══ RENDER DETAIL ══ */
+function renderDetail(a){
+  const id=a.id||a.alert_id;
+  const assist=pendingAssistVesselId ? vessels.find(v=>v.id===pendingAssistVesselId) : null;
+  const name=profileLabel(a);
+  document.getElementById('rpttl').textContent=name;
+  document.getElementById('rpkn').textContent=a.vessel_id||tr('vessel');
+  document.getElementById('rpsub').textContent=tr('operationsCenter')+' / '+typeLabel(a.alert_type);
+  const steps=['active','triaged','dispatched','resolved'];
+  const si=steps.indexOf(a.status||'active');
+  const tl=steps.map((s,i)=>`<div class="tls${i<=si?' done':''}"><div class="tld${i<si?' done':i===si?' cur':''}">${i<si?'✓':''}</div><div class="tll">${statusLabel(s)}</div></div>`).join('');
+  const hops=Array.from({length:parseInt(a.hop_count||0)+1},(_,i)=>`<span class="hn">${i===0?(a.vessel_id||'BOAT'):'NODE-'+i}</span><span class="ha">→</span>`).join('')+'<span class="hn">SHORE</span>';
+  const lat=parseFloat(a.lat||0), lng=parseFloat(a.lng||0);
+  const dis=(a.status==='resolved');
+  const rssi=-Math.floor(65+Math.random()*50);
+  const rp=Math.max(0,Math.min(100,((rssi+120)/60)*100));
+  const rc=rp>60?'var(--green)':rp>30?'var(--amber)':'var(--red)';
+  const etaHtml=etaT[id]?`<div class="eta-bar"><div class="eta-ic">ICG</div><div><div class="eta-lbl">${selLang==='kn'?'ಅಂದಾಜು ಆಗಮನ ಸಮಯ':'Estimated arrival'}</div><div class="eta-val" id="eta-${id}">-</div><div class="eta-sub">${selLang==='kn'?'ಕೋಸ್ಟ್ ಗಾರ್ಡ್ ಹಡಗು ಮಾರ್ಗದಲ್ಲಿದೆ':'Coast Guard vessel underway'}</div></div></div>`:'';
+  document.getElementById('rpbody').innerHTML=`
+    <div class="dbanner ${a.severity||'high'}">
+      <div class="dbic">${TICN[a.alert_type]||'SOS'}</div>
+      <div><div class="dbname">${name}</div><div class="dbkn">${a.vessel_id||tr('vessel')}</div><div class="dbtype">${typeLabel(a.alert_type)}</div></div>
+    </div>
+    ${trackerHtml(id)}
+    ${etaHtml}
+    ${assist ? `<div class="ai-box"><div class="ailbl">${tr('assistStaged')}</div><div class="aitxt">${vesselLabel(assist.id,assist.name)} ${selLang==='kn'?'ಈ ಘಟನೆಯ ನಕ್ಷೆಯಲ್ಲಿ ಸಿದ್ಧವಾಗಿದೆ. ಕಾರ್ಯಾಚರಣೆ ಕೇಂದ್ರದಿಂದ ಕ್ರಮ ಕಳುಹಿಸಿ.':'is ready on the map for this incident. Launch the response from the Operations Center.'}</div><div class="airesp">${tr('preparedFrom')} - ${statusLabel(assist.status)}</div></div>` : ''}
+    <details class="action-drop" ${dis ? '' : 'open'}>
+      <summary>${tr('operationsActions')}</summary>
+      <div class="action-drop-body">
+        <div class="action-drop-note">${assist ? `${vesselLabel(assist.id,assist.name)} ${selLang==='kn'?'ಈ ಘಟನೆಗೆ ಸಿದ್ಧವಾಗಿದೆ.':'is staged for this incident.'}` : tr('chooseResponse')}</div>
+        <div class="dabtns">
+          <button class="dab dab-rust" onclick="dispatch('${id}','dispatch_coast_guard')" ${dis?'disabled':''}>${tr('dispatchCoastGuard')}</button>
+          <div class="darow">
+            <button class="dab dab-steel" onclick="dispatch('${id}','dispatch_nearby')" ${dis?'disabled':''}>${tr('dispatchNearby')}</button>
+            <button class="dab dab-ghost" onclick="dispatch('${id}','sms_family')" ${dis?'disabled':''}>${tr('notifyFamily')}</button>
+          </div>
+          <button class="dab dab-green" onclick="dispatch('${id}','resolve')" ${dis?'disabled':''}>${tr('markResolved')}</button>
+        </div>
+      </div>
+    </details>
+    <div class="tl">${tl}</div>
+    <div class="igrid">
+      <div class="ibox"><div class="ilbl">${tr('vesselId')}</div><div class="ival mono">${a.vessel_id||'-'}</div></div>
+      <div class="ibox"><div class="ilbl">${tr('distance')}</div><div class="ival">${a.distance_km||'?'} ${tr('km')}</div></div>
+      <div class="ibox"><div class="ilbl">${tr('location')}</div><div class="ival mono" style="font-size:10px">${lat.toFixed(4)}°N<br>${lng.toFixed(4)}°E</div></div>
+      <div class="ibox"><div class="ilbl">${tr('battery')}</div><div class="ival">${a.battery_pct||'?'}%</div></div>
+      <div class="ibox"><div class="ilbl">LoRa RSSI</div><div class="ival mono" style="font-size:11px">${rssi} dBm</div><div class="rssi-row"><div class="rssi-track"><div class="rssi-fill" style="width:${rp}%;background:${rc}"></div></div></div></div>
+      <div class="ibox"><div class="ilbl">${tr('hop')}</div><div class="ival">${a.hop_count||0}</div></div>
+      <div class="ibox" style="grid-column:1/-1"><div class="ilbl">${tr('meshRoute')}</div><div class="hops">${hops}</div></div>
+    </div>
+    <hr class="divhr"/>
+    <div class="ai-box">
+      <div class="ailbl">${tr('triage')}</div>
+      <div class="aitxt">${localizedSummary(a)}</div>
+      ${a.ai_responder?`<div class="airesp">${selLang==='kn'?'ಶಿಫಾರಸು ಮಾಡಿದ ಪ್ರತಿಕ್ರಿಯೆ':'Recommended response'}: ${a.ai_responder}</div>`:''}
+    </div>
+    `;
+}
+function renderVesselDetail(v){
+  const target=bestAlertForVessel(v);
+  const targetId=target ? (target.id||target.alert_id) : null;
+  const rendezvous=target ? Math.sqrt(
+    Math.pow((parseFloat(v.lat||0)-parseFloat(target.lat||0))*110,2) +
+    Math.pow((parseFloat(v.lng||0)-parseFloat(target.lng||0))*98,2)
+  ).toFixed(1) : null;
+  const name=vesselLabel(v.id,v.name);
+  document.getElementById('rpttl').textContent=name;
+  document.getElementById('rpkn').textContent=v.id;
+  document.getElementById('rpsub').textContent=tr('vesselProfile');
+  document.getElementById('rpbody').innerHTML=`
+    <div class="dbanner medium">
+      <div class="dbic">VES</div>
+      <div>
+        <div class="dbname">${name}</div>
+        <div class="dbkn">${v.id} - ${v.owner||'-'}</div>
+        <div class="dbtype">${tr('availableAssist')}</div>
+      </div>
+    </div>
+    <div class="igrid">
+      <div class="ibox"><div class="ilbl">${tr('vesselId')}</div><div class="ival mono">${v.id}</div></div>
+      <div class="ibox"><div class="ilbl">${tr('status')}</div><div class="ival">${statusLabel(v.status)}</div></div>
+      <div class="ibox"><div class="ilbl">${tr('owner')}</div><div class="ival">${v.owner||'-'}</div></div>
+      <div class="ibox"><div class="ilbl">${tr('lastSeen')}</div><div class="ival mono">${v.last_seen ? new Date(v.last_seen).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}) : '-'}</div></div>
+      <div class="ibox"><div class="ilbl">${tr('coordinates')}</div><div class="ival mono" style="font-size:10px">${parseFloat(v.lat||0).toFixed(4)}°N<br>${parseFloat(v.lng||0).toFixed(4)}°E</div></div>
+      <div class="ibox"><div class="ilbl">${tr('recommendedRole')}</div><div class="ival">${target ? tr('nearestAssist') : tr('standby')}</div></div>
+    </div>
+    <div class="ai-box">
+      <div class="ailbl">${tr('recommendedRole')}</div>
+      <div class="aitxt">${target
+        ? (selLang==='kn' ? `${name} ಹಡಗು ${vesselLabel(target.vessel_id,target.vessel_name)} ಘಟನೆಯ ಹತ್ತಿರದ ಸಹಾಯಕ ಹಡಗು. ಅಂದಾಜು ಅಂತರ ${rendezvous} ${tr('km')}.` : `${name} is the nearest visible assist vessel for ${vesselLabel(target.vessel_id,target.vessel_name)}. Estimated gap: ${rendezvous} ${tr('km')}.`)
+        : (selLang==='kn' ? `${name} ಗೆ ಈಗ ಸಕ್ರಿಯ ತುರ್ತು ಗುರಿ ಇಲ್ಲ. ಸಿದ್ಧವಾಗಿರಿಸಿ.` : `${name} has no active distress target right now. Keep it on standby.`)}</div>
+      ${target ? `<div class="airesp">${typeLabel(target.alert_type)} - ${severityLabel(target.severity)} - ${target.distance_km||'?'} ${tr('km')}</div>` : ''}
+    </div>
+    <div class="dabtns">
+      <button class="dab dab-steel" onclick="flyTo('${v.id}')">${tr('focusMap')}</button>
+      <button class="dab dab-ghost" onclick="closePanel()">${tr('closePanel')}</button>
+    </div>`;
+}
+async function rescueFromVessel(vesselId,alertId){
+  const vessel=vessels.find(x=>x.id===vesselId);
+  const alert=alerts.find(x=>(x.id||x.alert_id)===alertId);
+  if(!vessel || !alert) return;
+  pendingAssistVesselId=vesselId;
+  toast(tr('stagedToast'), `${vesselLabel(vessel.id,vessel.name)} ${selLang==='kn'?'ಸಿದ್ಧವಾಗಿದೆ':'staged for'} ${vesselLabel(alert.vessel_id,alert.vessel_name)}. ${tr('stagedNote')}`, 'tb');
+  addAct('VES', `${vesselLabel(vessel.id,vessel.name)} ${tr('stagedLog')} ${vesselLabel(alert.vessel_id,alert.vessel_name)}`);
+  selAlert(alertId);
+  if(vessel.lat&&vessel.lng) map.flyTo([vessel.lat,vessel.lng],11,{duration:0.8});
+  setTimeout(()=>{ if(alert.lat&&alert.lng) map.flyTo([alert.lat,alert.lng],12,{duration:1.2}); }, 1100);
+}
+
+/* ══ DISPATCH + ANIMATIONS ══ */
+async function dispatch(id,action){
+  playSound(action==='dispatch_coast_guard'?'coast':action==='dispatch_nearby'?'dispatch':action==='sms_family'?'sms':action==='resolve'?'resolve':'profile');
+  try{await apiFetch(`/alerts/${id}/dispatch`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({alert_id:id,action,operator:'control_room'})});}catch{}
+  const a=alerts.find(x=>(x.id||x.alert_id)===id);
+  if(!a) return;
+  if(action==='dispatch_coast_guard'){
+    a.status='dispatched';renderList();renderDetail(a);syncKPI();
+    showDispatchMap();
+    const km=parseFloat(a.distance_km||15);
+    const etaMin=Math.round(km*3.5+20); // FPV avg 15 knots
+    startTracker(id,'boat',`ETA ${etaMin} min`);
+    toast(tr('coastGuardSent'),`ICG FPV C-156 - ETA ${etaMin} min`,'tg');
+    addAct('ICG',`${tr('coastGuardSent')} - ${profileLabel(a)}`);
+    syslog(selLang==='kn'?`ಕೋಸ್ಟ್ ಗಾರ್ಡ್ ಹಡಗು ಮಂಗಳೂರು ಬಂದರಿನಿಂದ ಹೊರಟಿದೆ - ${etaMin} ನಿಮಿಷ`:`Coast Guard vessel underway from Mangaluru Port - ETA ${etaMin} min`);
+    speak(selLang==='kn'?`ಕೋಸ್ಟ್ ಗಾರ್ಡ್ ಕಳುಹಿಸಲಾಗಿದೆ. ${etaMin} ನಿಮಿಷದಲ್ಲಿ ತಲುಪುತ್ತದೆ.`:`Coast Guard dispatched. Estimated arrival is ${etaMin} minutes.`,selLang);
+    animHeli(id,a.lat,a.lng,etaMin);
+  } else if(action==='dispatch_nearby'){
+    a.status='dispatched';renderList();renderDetail(a);syncKPI();
+    showDispatchMap();
+    startTracker(id,'boat',selLang==='kn'?'ಹತ್ತಿರದ ಹಡಗು':'Nearby vessel');
+    toast(tr('nearbySent'),profileLabel(a),'tg');
+    addAct('VES',`${tr('nearbySent')} - ${profileLabel(a)}`);
+    animBoat(id,a.lat,a.lng);
+  } else if(action==='sms_family'){
+    startTracker(id,'sms',selLang==='kn'?'SMS':'SMS');
+    animateSmsDelivery(id);
+    toast(tr('familySent'),profileLabel(a),'tb');
+    addAct('SMS',`${tr('familySent')} - ${profileLabel(a)}`);
+    speak(selLang==='kn'?`${profileLabel(a)} ಕುಟುಂಬಕ್ಕೆ ಸಂದೇಶ ಕಳುಹಿಸಲಾಗಿದೆ`:`Family of ${profileLabel(a)} has been notified.`,selLang);
+  } else if(action==='resolve'){
+    a.status='resolved';
+    if(etaT[id]){clearInterval(etaT[id]);delete etaT[id];}
+    renderList();renderDetail(a);syncKPI();
+    setTimeout(()=>showNextPendingAfter(id),350);
+    toast(tr('resolvedOk'),profileLabel(a),'tg');
+    addAct('OK',`${tr('resolvedOk')} - ${profileLabel(a)}`);
+    syslog(`Alert ${id} resolved - ${profileLabel(a)} safe`);
+    speak(selLang==='kn'?`ರಕ್ಷಣೆ ಯಶಸ್ವಿಯಾಗಿದೆ. ${profileLabel(a)} ಸುರಕ್ಷಿತವಾಗಿದೆ.`:`Rescue successful. ${profileLabel(a)} is safe.`,selLang);
+    pinAlert(a); // refresh marker
+  }
+}
+
+function liveRescueRoute(alertId,startLat,startLng,tLat,tLng,opts={}){
+  isolateDispatchMap(alertId);
+  if(rMkr[alertId]) map.removeLayer(rMkr[alertId]);
+  const dur=opts.duration||12000;
+  const color=opts.color||'#C4521A';
+  const mk=L.marker([startLat,startLng],{icon:L.divIcon({className:'',iconSize:[34,24],iconAnchor:[17,12],html:rescueBoatSVG()})}).addTo(map);
+  rMkr[alertId]=mk;
+  const full=L.polyline([[startLat,startLng],[tLat,tLng]],{color,weight:3,opacity:.35,dashArray:'8 10',className:'route-pulse'}).addTo(map);
+  const done=L.polyline([[startLat,startLng]],{color:'#1E7A4E',weight:4,opacity:.9}).addTo(map);
+  const wake=[];
+  let wakeLine=null, st=null;
+  map.flyTo([tLat,tLng],14,{duration:.8});
+  setTimeout(()=>map.fitBounds([[startLat,startLng],[tLat,tLng]],{padding:[76,76],maxZoom:14}),650);
+  function step(ts){
+    if(!st) st=ts;
+    const p=Math.min((ts-st)/dur,1);
+    const eased=1-Math.pow(1-p,3);
+    const lat=startLat+(tLat-startLat)*eased;
+    const lng=startLng+(tLng-startLng)*eased;
+    mk.setLatLng([lat,lng]);
+    done.setLatLngs([[startLat,startLng],[lat,lng]]);
+    wake.push([lat,lng]);
+    if(wake.length>24) wake.shift();
+    if(wakeLine) map.removeLayer(wakeLine);
+    if(wake.length>1) wakeLine=L.polyline(wake,{color:'#F5F0E8',weight:2,opacity:.24,dashArray:'2 8'}).addTo(map);
+    const pct=Math.round(eased*100);
+    const status=pct<25?(selLang==='kn'?'ರಕ್ಷಣಾ ಹಡಗು ಹೊರಟಿದೆ':'Rescue boat picked up'):
+      pct<70?(selLang==='kn'?'ಮಾರ್ಗದಲ್ಲಿ ಚಲಿಸುತ್ತಿದೆ':'Boat is moving on route'):
+      pct<100?(selLang==='kn'?'ಗುರಿಯ ಹತ್ತಿರ':'Arriving near target'):
+      (selLang==='kn'?'ಗುರಿ ತಲುಪಿದೆ':'Reached target');
+    updateTracker(alertId,pct,status,opts.eta||'');
+    if(p<1) requestAnimationFrame(step);
+    else{
+      setTimeout(()=>{map.removeLayer(full);map.removeLayer(done);if(wakeLine)map.removeLayer(wakeLine);},1800);
+      if(opts.onDone) opts.onDone();
+    }
+  }
+  requestAnimationFrame(step);
+}
+function animateSmsDelivery(id){
+  const statuses=selLang==='kn'
+    ? ['ಕುಟುಂಬ ಸಂಪರ್ಕ ಹುಡುಕಲಾಗುತ್ತಿದೆ','ಸಂದೇಶ ಕಳುಹಿಸಲಾಗುತ್ತಿದೆ','SMS ತಲುಪಿದೆ','ಕುಟುಂಬಕ್ಕೆ ತಿಳಿಸಲಾಗಿದೆ']
+    : ['Finding family contact','Sending SMS update','SMS delivered','Family notified'];
+  statuses.forEach((s,i)=>setTimeout(()=>updateTracker(id,[20,55,82,100][i],s,'SMS'),i*750));
+}
+
+/* ══ ICG FAST PATROL VESSEL ANIMATION (realistic India) ══ */
+function animHeli(alertId,tLat,tLng,etaMin){
+  liveRescueRoute(alertId,SHORE[0],SHORE[1],tLat,tLng,{
+    duration:15000,
+    color:'#C4521A',
+    eta:`ETA ${etaMin} min`,
+    onDone:()=>{toast(tr('resolvedOk'),selLang==='kn'?'ರಕ್ಷಣಾ ಹಡಗು ತಲುಪಿದೆ. ಕಾರ್ಯ ಪೂರ್ಣಗೊಂಡಿದೆ':'Rescue vessel reached target. Mission completed','tg');speak(selLang==='kn'?'ರಕ್ಷಣಾ ಹಡಗು ತಲುಪಿದೆ. ರಕ್ಷಣಾ ಕಾರ್ಯ ಪೂರ್ಣಗೊಂಡಿದೆ.':'Rescue vessel reached the target. Rescue mission completed.',selLang);completeDispatch(alertId);}
+  });
+  let liveRem=etaMin*60;
+  etaT[alertId]=setInterval(()=>{
+    liveRem--;
+    const el=document.getElementById('eta-'+alertId);
+    if(el){const m=Math.floor(liveRem/60),s=liveRem%60;el.textContent=`${m}:${s.toString().padStart(2,'0')}`;}
+    if(liveRem<=0){clearInterval(etaT[alertId]);delete etaT[alertId];}
+  },1000);
+  return;
+  if(rMkr[alertId]) map.removeLayer(rMkr[alertId]);
+  // ICG rescue boat - sails from port to target
+  const mk=L.marker(SHORE,{icon:L.divIcon({className:'',iconSize:[26,16],iconAnchor:[13,8],html:rescueBoatSVG()})}).addTo(map);
+  rMkr[alertId]=mk;
+  const route=L.polyline([SHORE,[tLat,tLng]],{color:'#C4521A',weight:2,dashArray:'6 6',opacity:.6}).addTo(map);
+  // Wake trail behind the moving FPV
+  const wakePoints=[];
+  let wakePolyline=null;
+  let st=null; const dur=14000; // 14s animation for a boat (slower/more realistic)
+  function step(ts){
+    if(!st) st=ts;
+    const p=Math.min((ts-st)/dur,1);
+    const lat=SHORE[0]+(tLat-SHORE[0])*p;
+    const lng=SHORE[1]+(tLng-SHORE[1])*p;
+    mk.setLatLng([lat,lng]);
+    // draw wake
+    wakePoints.push([lat,lng]);
+    if(wakePoints.length>20) wakePoints.shift();
+    if(wakePolyline) map.removeLayer(wakePolyline);
+    if(wakePoints.length>1) wakePolyline=L.polyline(wakePoints,{color:'#2E6B8A',weight:2,opacity:.35,dashArray:'3 5'}).addTo(map);
+    if(p<1){requestAnimationFrame(step);}
+    else{
+      map.removeLayer(route);
+      if(wakePolyline) map.removeLayer(wakePolyline);
+      toast(tr('coastGuardSent'),selLang==='kn'?'ರಕ್ಷಣಾ ಹಡಗು ತಲುಪಿದೆ':'Rescue vessel reached target','tg');
+      speak(selLang==='kn'?'ರಕ್ಷಣಾ ಹಡಗು ತಲುಪಿದೆ. ರಕ್ಷಣೆ ಪ್ರಾರಂಭವಾಗಿದೆ.':'Rescue vessel reached the target. Rescue has started.',selLang);
+    }
+  }
+  requestAnimationFrame(step);
+  // ETA countdown
+  let rem=etaMin*60;
+  etaT[alertId]=setInterval(()=>{
+    rem--;
+    const el=document.getElementById('eta-'+alertId);
+    if(el){const m=Math.floor(rem/60),s=rem%60;el.textContent=`${m}:${s.toString().padStart(2,'0')}`;}
+    if(rem<=0){clearInterval(etaT[alertId]);delete etaT[alertId];}
+  },1000);
+}
+
+/* ══ NEARBY FISHING VESSEL RESCUE ══ */
+function animBoat(alertId,tLat,tLng){
+  const vid=Object.keys(VP)[Math.floor(Math.random()*Object.keys(VP).length)];
+  const v=vessels.find(x=>x.id===vid);
+  const sLat=v?v.lat:VP[vid][0];
+  const sLng=v?v.lng:VP[vid][1];
+  liveRescueRoute(alertId,sLat,sLng,tLat,tLng,{
+    duration:11000,
+    color:'#2E6B8A',
+    eta:vesselLabel(vid,VN[vid]),
+    onDone:()=>{toast(tr('resolvedOk'),`${vesselLabel(vid,VN[vid])} ${selLang==='kn'?'ಗುರಿ ತಲುಪಿ ಕಾರ್ಯ ಪೂರ್ಣಗೊಳಿಸಿದೆ':'reached the target and completed rescue'}`,'tg');speak(selLang==='kn'?`${vesselLabel(vid,VN[vid])} ಗುರಿ ಹಡಗನ್ನು ತಲುಪಿದೆ. ರಕ್ಷಣಾ ಕಾರ್ಯ ಪೂರ್ಣಗೊಂಡಿದೆ.`:`${vesselLabel(vid,VN[vid])} reached the target vessel. Rescue mission completed.`,selLang);completeDispatch(alertId);}
+  });
+  return;
+  const route=L.polyline([[sLat,sLng],[tLat,tLng]],{color:'#2E6B8A',weight:2,dashArray:'5 5',opacity:.6}).addTo(map);
+  const wakePoints=[];
+  let wakePolyline=null;
+  let st=null; const dur=10000;
+  function step(ts){
+    if(!st) st=ts;
+    const p=Math.min((ts-st)/dur,1);
+    const lat=sLat+(tLat-sLat)*p;
+    const lng=sLng+(tLng-sLng)*p;
+    if(vMkr[vid]) vMkr[vid].setLatLng([lat,lng]);
+    wakePoints.push([lat,lng]);
+    if(wakePoints.length>15) wakePoints.shift();
+    if(wakePolyline) map.removeLayer(wakePolyline);
+    if(wakePoints.length>1) wakePolyline=L.polyline(wakePoints,{color:'#2E6B8A',weight:1,opacity:.3,dashArray:'2 5'}).addTo(map);
+    if(p<1){requestAnimationFrame(step);}
+    else{
+      map.removeLayer(route);
+      if(wakePolyline) map.removeLayer(wakePolyline);
+      toast(tr('nearbySent'),`${vesselLabel(vid,VN[vid])} ${selLang==='kn'?'ತಲುಪಿದೆ':'reached the target'}`,'tg');
+      speak(selLang==='kn'?`${vesselLabel(vid,VN[vid])} ಗುರಿ ಹಡಗನ್ನು ತಲುಪಿದೆ`:`${vesselLabel(vid,VN[vid])} reached the target vessel.`,selLang);
+    }
+  }
+  requestAnimationFrame(step);
+}
+
+/* ══ MESH HOP ANIMATION ══ */
+function meshAnim(a){
+  if(!a.lat||!a.lng) return;
+  const hc=parseInt(a.hop_count||0);
+  const pts=[[a.lat,a.lng]];
+  for(let i=0;i<hc;i++){
+    const t=(i+1)/(hc+1);
+    pts.push([a.lat+(SHORE[0]-a.lat)*t+(Math.random()-.5)*.04,a.lng+(SHORE[1]-a.lng)*t+(Math.random()-.5)*.04]);
+  }
+  pts.push(SHORE);
+  pts.forEach((pt,i)=>{
+    if(i>=pts.length-1) return;
+    setTimeout(()=>{
+      const seg=L.polyline([pt,pts[i+1]],{color:'#C4521A',weight:3,opacity:.9}).addTo(map);
+      const dot=L.circleMarker(pts[i+1],{radius:5,color:'#C4521A',fillColor:'#C4521A',fillOpacity:1}).addTo(map);
+      setTimeout(()=>{map.removeLayer(seg);map.removeLayer(dot);},1800);
+    },i*350);
+  });
+}
+
+/* ══ MAP MARKERS (SVG functions moved to top, these are now stubs) ══ */
+
+function pinAlert(a){
+  const id=a.id||a.alert_id;
+  if(aMkr[id]) map.removeLayer(aMkr[id]);
+  const html=alertSVG(a.severity, a.status==='resolved');
+  const clr=SCOL[a.severity]||'#C4521A';
+  const m=L.marker([a.lat,a.lng],{icon:L.divIcon({className:'',iconSize:[28,28],iconAnchor:[14,14],html})}).addTo(map)
+    .bindPopup(`<div class="mpop"><div class="mptl">${profileLabel(a)}</div><div class="mpr">${a.vessel_id||''}</div><div class="mpr">${typeLabel(a.alert_type)}</div><div class="mpr">${a.distance_km} ${tr('km')} ${tr('offshore')}</div><div class="mpr" style="color:${clr};font-weight:700;letter-spacing:.05em">${severityLabel(a.severity)}</div></div>`);
+  m.on('click',()=>selAlert(id));
+  aMkr[id]=m;
+}
+function pinVessel(v){
+  if(!v.lat||!v.lng) return;
+  if(vMkr[v.id]) map.removeLayer(vMkr[v.id]);
+  const bat=v.battery_pct||VB[v.id]||80;
+  const m=L.marker([v.lat,v.lng],{icon:L.divIcon({className:'',iconSize:[22,18],iconAnchor:[11,9],html:vesselSVG(bat)})}).addTo(map)
+    .bindPopup(`<div class="mpop"><div class="mptl">${vesselLabel(v.id,v.name)}</div><div class="mpr">${v.id}</div><div class="mpr">${tr('owner')}: ${v.owner||'-'}</div><div class="mpr">${tr('battery')}: ${bat}%</div></div>`);
+  m.on('click',()=>selVessel(v.id));
+  vMkr[v.id]=m;
+}
+
+/* ══ VESSEL DRIFT WITH BREADCRUMB TRAILS ══ */
+setInterval(()=>{
+  vessels.forEach(v=>{
+    if(!v.lat||!v.lng||!vMkr[v.id]) return;
+    v.lat+=(Math.random()-.5)*.00016;
+    v.lng+=(Math.random()-.5)*.00016;
+    vMkr[v.id].setLatLng([v.lat,v.lng]);
+    if(!vPts[v.id]) vPts[v.id]=[];
+    vPts[v.id].push([v.lat,v.lng]);
+    if(vPts[v.id].length>10) vPts[v.id].shift();
+    if(vTrail[v.id]) map.removeLayer(vTrail[v.id]);
+    if(vPts[v.id].length>1) vTrail[v.id]=L.polyline(vPts[v.id],{color:'#2E6B8A',weight:1,opacity:.3,dashArray:'3 8'}).addTo(map);
+  });
+},3500);
+
+/* ══ RENDER VESSELS TAB ══ */
+function renderVessels(){
+  const el=document.getElementById('vessel-list');
+  if(!vessels.length){el.innerHTML='<div class="empty"><div class="eic">VES</div></div>';return;}
+  el.innerHTML=vessels.map(v=>{
+    const bat=v.battery_pct||VB[v.id]||80;
+    const bc=bat>60?'bat-ok':bat>30?'bat-low':'bat-crit';
+    const bi=bat>60?'🔋':bat>30?'🪫':'⚡';
+    const fc=bat>60?'var(--green)':bat>30?'var(--amber)':'var(--red)';
+    const pos=v.lat?`${parseFloat(v.lat).toFixed(4)}°N, ${parseFloat(v.lng).toFixed(4)}°E`:'-';
+    return `<div class="vc-card${selVesselId===v.id?' sel':''}" onclick="selVessel('${v.id}')">
+      <div class="vc-sdot vs-active"></div>
+      <div><div class="vc-name">${vesselLabel(v.id,v.name)}</div><div class="vc-kn">${v.id} - ${v.owner||'-'}</div><div class="vc-pos">${pos}</div>
+      <div class="vc-bat ${bc}">${bi} ${tr('battery')} ${bat}%</div>
+      <div class="bat-track"><div class="bat-fill" style="width:${bat}%;background:${fc}"></div></div></div>
+    </div>`;
+  }).join('');
+}
+function flyTo(id){const v=vessels.find(x=>x.id===id);if(v&&v.lat) map.flyTo([v.lat,v.lng],13,{duration:1.2});}
+
+/* ══ KPI SYNC ══ */
+function syncKPI(){
+  const bs=s=>alerts.filter(a=>(a.status||'active')===s).length;
+  const act=bs('active');
+  const tri=bs('triaged');
+  const dis=bs('dispatched');
+  const res=bs('resolved');
+  const live=act+tri+dis;
+  animN('k-act',act);animN('k-tot',live);animN('k-dis',dis);animN('k-res',res);
+  // Also sync mobile strip
+  animN('mob-k-act',act);animN('mob-k-tot',live);animN('mob-k-res',res);
+  const sub=document.getElementById('k-sub');
+  if(sub) sub.textContent=act>0?(selLang==='kn'?`${act} ಹಡಗುಗಳು ಅಪಾಯದಲ್ಲಿವೆ`:`${act} vessels in distress`):(selLang==='kn'?'ಎಲ್ಲಾ ಸುರಕ್ಷಿತ':'All safe');
+  if(act>0){const k=document.querySelector('.kpi');if(k){k.classList.add('pulsing');setTimeout(()=>k.classList.remove('pulsing'),600);}}
+}
+function animN(id,target){
+  const el=document.getElementById(id);if(!el) return;
+  const cur=parseInt(el.textContent)||0;if(cur===target) return;
+  let i=0;const steps=10;const inc=(target-cur)/steps;
+  const t=setInterval(()=>{i++;el.textContent=Math.round(cur+inc*i);if(i>=steps){el.textContent=target;clearInterval(t);}},25);
+}
+
+/* ══ ACTIVITY LOG ══ */
+function addAct(ic,msg){
+  const t=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  actLog.unshift({ic,msg,t});if(actLog.length>60) actLog.pop();
+  const el=document.getElementById('activity-log');
+  if(el) el.innerHTML=actLog.map(a=>`<div class="arow"><div class="arow-ic">${a.ic}</div><div><div class="arow-t">${a.t}</div><div class="arow-m">${a.msg}</div></div></div>`).join('');
+}
+
+/* ══ SIMULATE SOS ══ */
+async function triggerSOS(){
+  const ids=['mbtn','lsbtn'];
+  ids.forEach(i=>{const e=document.getElementById(i);if(e) e.disabled=true;});
+  try{
+    const d=await apiFetch('/simulate/sos',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+    syslog(selLang==='kn'?`SOS ಕಳುಹಿಸಲಾಗಿದೆ - ${d.result?.alert_id}`:`SOS fired - ${d.result?.alert_id}`);
+  }catch{
+    const a=demoAlert();
+    alerts.unshift(a);renderList(true);pinAlert(a);syncKPI();
+    toast(`${TICN[a.alert_type]||'SOS'} ${vesselLabel(a.vessel_id,a.vessel_name)}`,`${typeLabel(a.alert_type)} - ${severityLabel(a.severity)}`,'tr');
+    addAct(TICN[a.alert_type]||'SOS',`${vesselLabel(a.vessel_id,a.vessel_name)} - ${typeLabel(a.alert_type)}`);
+    syslog(selLang==='kn'?`ಪರೀಕ್ಷಾ SOS: ${vesselLabel(a.vessel_id,a.vessel_name)}`:`Demo SOS: ${vesselLabel(a.vessel_id,a.vessel_name)}`);
+    map.flyTo([a.lat,a.lng],12,{duration:1.2});
+    autoAnnounce(a);meshAnim(a);
+  }
+  setTimeout(()=>{ids.forEach(i=>{const e=document.getElementById(i);if(e) e.disabled=false;});},2500);
+}
+
+/* ══ DEMO DATA ══ */
+function demoAlert(opts={}){
+  const vids=['VES-001','VES-002','VES-003','VES-004','VES-005'];
+  const types=['sos_manual','capsize','drift','engine_fail','medical','fire'];
+  const sevs=['critical','critical','high','high','medium','low'];
+  const vid=opts.vessel_id||vids[Math.floor(Math.random()*vids.length)];
+  const at=opts.alert_type||types[Math.floor(Math.random()*types.length)];
+  const sev=opts.severity||sevs[Math.floor(Math.random()*sevs.length)];
+  const lat=opts.lat||(12.72+Math.random()*.34);
+  const lng=opts.lng||(74.50+Math.random()*.46);
+  const d=Math.sqrt(Math.pow((lat-SHORE[0])*110,2)+Math.pow((lng-SHORE[1])*98,2)).toFixed(1);
+  _did++;
+  return{id:`ALT-D${_did}`,alert_id:`ALT-D${_did}`,vessel_id:vid,vessel_name:VN[vid]||vid,lat,lng,alert_type:at,severity:sev,status:'active',distance_km:parseFloat(d),hop_count:Math.floor(Math.random()*3)+1,battery_pct:Math.floor(50+Math.random()*50),ai_responder:parseFloat(d)>12?'ICG Mangalore - FPV C-156':'NDRF Marine Unit',created_at:new Date().toISOString()};
+}
+function seedDemo(){
+  [{alert_type:'capsize',severity:'critical',vessel_id:'VES-001'},{alert_type:'drift',severity:'high',vessel_id:'VES-003'},{alert_type:'medical',severity:'high',vessel_id:'VES-002'}]
+  .forEach(s=>{const p=VP[s.vessel_id];const a=demoAlert({...s,lat:p[0]+(.02*Math.random()-.01),lng:p[1]+(.02*Math.random()-.01)});alerts.push(a);pinAlert(a);});
+  renderList();syncKPI();
+}
+
+/* ══ TOAST ══ */
+function toast(title,body,cls=''){
+  const c=document.getElementById('toasts');
+  const el=document.createElement('div');
+  el.className='toast '+(cls||'');
+  el.innerHTML=`<div class="tttl">${title}</div><div class="tbod">${body}</div>`;
+  c.appendChild(el);
+  setTimeout(()=>{el.style.transition='all .3s';el.style.opacity='0';el.style.transform='translateX(110%)';setTimeout(()=>el.remove(),300);},5000);
+}
+
+/* ══ SYSLOG ══ */
+function syslog(m){document.getElementById('logmsg').textContent=new Date().toLocaleTimeString('en-IN')+' · '+m;}
+
+/* ══ BOOT ══ */
+// Pre-load Web Speech voices
+if(window.speechSynthesis){
+  window.speechSynthesis.getVoices();
+  if(window.speechSynthesis.onvoiceschanged!==undefined) window.speechSynthesis.onvoiceschanged=()=>window.speechSynthesis.getVoices();
+}
+init();
+setInterval(()=>apiFetch('/weather').catch(()=>{}),300000);
+setInterval(renderList,30000); // refresh elapsed times
+</script>
+<script>
+  (function () {
+    var FEMALE_HINTS = ["female", "woman", "zira", "samantha", "google us english", "kannada"];
+    var toastObserver;
+
+    function textOf(node) {
+      return (node && (node.innerText || node.textContent || "") || "").trim();
+    }
+
+    function pickFemaleVoice(lang) {
+      if (!("speechSynthesis" in window)) return null;
+      var voices = window.speechSynthesis.getVoices() || [];
+      var targetLang = (lang || document.documentElement.lang || "en").toLowerCase();
+      return voices.find(function (voice) {
+        var name = (voice.name || "").toLowerCase();
+        var voiceLang = (voice.lang || "").toLowerCase();
+        return voiceLang.indexOf(targetLang.slice(0, 2)) === 0 && FEMALE_HINTS.some(function (hint) { return name.indexOf(hint) !== -1; });
+      }) || voices.find(function (voice) {
+        var voiceLang = (voice.lang || "").toLowerCase();
+        return voiceLang.indexOf(targetLang.slice(0, 2)) === 0;
+      }) || voices[0] || null;
+    }
+
+    window.__tarangStopAllVoices = function () {
+      try { if ("speechSynthesis" in window) window.speechSynthesis.cancel(); } catch (e) {}
+      document.querySelectorAll("audio").forEach(function (audio) {
+        try {
+          audio.pause();
+          audio.currentTime = 0;
+        } catch (e) {}
+      });
+    };
+
+    window.__tarangPlayResolvedVoice = function (message, lang) {
+      if (!("speechSynthesis" in window)) return;
+      window.__tarangStopAllVoices();
+      var utter = new SpeechSynthesisUtterance(message || "Rescue completed. Survivor secured.");
+      utter.lang = lang || document.documentElement.lang || "en-US";
+      utter.rate = 0.95;
+      utter.pitch = 1.08;
+      var voice = pickFemaleVoice(utter.lang);
+      if (voice) utter.voice = voice;
+      window.speechSynthesis.speak(utter);
+    };
+
+    function attachToastClose(node) {
+      if (!node || node.nodeType !== 1 || node.dataset.tarangDismissReady === "1") return;
+      var style = window.getComputedStyle(node);
+      var looksLikeToast =
+        style.position === "fixed" ||
+        /toast|snack|alert|message|notice|popup/i.test(node.className || "") ||
+        /toast|snack|alert|message|notice|popup/i.test(node.id || "");
+      if (!looksLikeToast) return;
+
+      node.dataset.tarangDismissReady = "1";
+      if (style.position === "static") node.style.position = "relative";
+      if (node.querySelector(".tarang-close-btn")) return;
+
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "tarang-close-btn";
+      btn.setAttribute("aria-label", "Close message");
+      btn.textContent = "Close";
+      btn.style.position = "absolute";
+      btn.style.top = "10px";
+      btn.style.right = "10px";
+      btn.style.zIndex = "9999";
+      btn.style.border = "1px solid rgba(255,255,255,0.2)";
+      btn.style.background = "rgba(11,22,32,0.95)";
+      btn.style.color = "#fff";
+      btn.style.padding = "6px 10px";
+      btn.style.cursor = "pointer";
+      btn.addEventListener("click", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        node.remove();
+      });
+      node.appendChild(btn);
+    }
+
+    function scanToasts() {
+      document.querySelectorAll("body *").forEach(function (node) {
+        var content = textOf(node);
+        if (content && content.length < 240) attachToastClose(node);
+      });
+    }
+
+    function looksResolvedAction(node) {
+      var text = textOf(node).toLowerCase();
+      return /resolved|complete rescue|rescue complete|mark resolved|close case|case closed/.test(text);
+    }
+
+    document.addEventListener("click", function (event) {
+      var target = event.target && event.target.closest ? event.target.closest("button, a, [role='button']") : null;
+      if (!target) return;
+      if (looksResolvedAction(target)) {
+        setTimeout(function () {
+          var lang = (document.documentElement.lang || "en-US").toLowerCase().indexOf("kn") === 0 ? "kn-IN" : "en-US";
+          var msg = lang === "kn-IN"
+            ? "ರಕ್ಷಣೆ ಪೂರ್ಣಗೊಂಡಿದೆ. ತಂಡ ಸುರಕ್ಷಿತವಾಗಿ ಪ್ರಕರಣವನ್ನು ಮುಗಿಸಿದೆ."
+            : "Rescue completed. The team has secured the case.";
+          window.__tarangPlayResolvedVoice(msg, lang);
+        }, 180);
+      }
+    }, true);
+
+    document.addEventListener("DOMContentLoaded", function () {
+      scanToasts();
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.onvoiceschanged = function () {};
+      }
+      toastObserver = new MutationObserver(scanToasts);
+      toastObserver.observe(document.body, { childList: true, subtree: true });
+    });
+  })();
+</script>
+</body>
+</html>

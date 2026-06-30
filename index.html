@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TARANG — SOS from the Sea, Delivered Without the Internet</title>
+  <meta name="description" content="TARANG is an AI-powered LoRa mesh rescue network built for India's 4 million fisherfolk — reaching distress signals 15-20 km offshore, even with zero cellular coverage."/>
+  <meta name="keywords" content="TARANG, maritime rescue, LoRa mesh, fisherfolk, offline SOS, coastal safety, India, Team Cipher"/>
+  <meta property="og:title" content="TARANG — SOS from the Sea"/>
+  <meta property="og:description" content="An AI-powered LoRa mesh rescue network for India's 4 million fisherfolk — offline-capable, voice-first, multilingual."/>
+  <style>
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,700;0,800;1,400;1,700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+:root{--navy:#0A1628;--salt:#F5F0E8;--rust:#C4521A;--steel:#2E6B8A;--charcoal:#1C2B3A;--mist:#8FA8B8;--white:#FFFFFF;--max-w:1200px;--sp:120px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--navy);color:var(--salt);font-family:'Inter',sans-serif;line-height:1.6;overflow-x:hidden;}
+a{color:inherit;text-decoration:none;}
+svg{display:block;}
+.container{max-width:var(--max-w);margin:0 auto;padding:0 40px;}
+.sl{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--rust);letter-spacing:.12em;text-transform:uppercase;margin-bottom:32px;display:block;}
+hr.dv{border:none;border-top:1px solid rgba(245,240,232,.15);}
+nav{position:sticky;top:0;z-index:100;background:var(--navy);border-bottom:1px solid rgba(245,240,232,.08);}
+.ni{display:flex;align-items:center;justify-content:space-between;height:68px;max-width:var(--max-w);margin:0 auto;padding:0 40px;}
+.nw{font-family:'Lora',serif;font-weight:700;font-size:22px;color:var(--salt);letter-spacing:.08em;}
+.nl{display:flex;align-items:center;gap:36px;list-style:none;}
+.nl a{font-size:14px;font-weight:500;color:var(--mist);transition:color .2s;}
+.nl a:hover{color:var(--salt);}
+.ng{font-size:14px;font-weight:500;color:var(--rust);border:2px solid var(--rust);padding:8px 20px;transition:background .2s,color .2s;}
+.ng:hover{background:var(--rust);color:var(--white);}
+.nd{font-size:14px;font-weight:500;color:var(--steel);border:2px solid var(--steel);padding:8px 20px;margin-right:8px;transition:background .2s,color .2s;}
+.nd:hover{background:var(--steel);color:var(--white);}
+.hbg{display:none;flex-direction:column;gap:5px;cursor:pointer;background:none;border:none;padding:4px;}
+.hbg span{display:block;width:24px;height:2px;background:var(--salt);transition:all .3s;}
+.hbg.open span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+.hbg.open span:nth-child(2){opacity:0;}
+.hbg.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+.mm{display:none;position:fixed;top:68px;left:0;right:0;bottom:0;background:var(--navy);z-index:99;flex-direction:column;align-items:center;justify-content:center;gap:36px;}
+.mm.open{display:flex;}
+.mm a{font-size:22px;font-weight:500;color:var(--salt);}
+@keyframes fu{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+#hero{min-height:calc(100vh - 68px);background:var(--navy);display:flex;align-items:center;padding:80px 0;}
+.hg{display:grid;grid-template-columns:60% 40%;gap:60px;align-items:center;}
+.he{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mist);letter-spacing:.1em;text-transform:uppercase;margin-bottom:28px;opacity:0;animation:fu .8s ease forwards 0s;}
+.hh{font-family:'Lora',serif;font-weight:800;font-size:72px;line-height:1.06;color:var(--salt);margin-bottom:28px;opacity:0;animation:fu .8s ease forwards .2s;}
+.hs{font-size:18px;color:var(--mist);max-width:480px;line-height:1.65;margin-bottom:40px;opacity:0;animation:fu .8s ease forwards .4s;}
+.hb{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:36px;opacity:0;animation:fu .8s ease forwards .6s;}
+.btp{font-family:'Inter',sans-serif;font-size:16px;font-weight:500;color:var(--white);background:var(--rust);border:2px solid var(--rust);padding:14px 28px;cursor:pointer;transition:background .2s,color .2s;border-radius:0;display:inline-block;}
+.btp:hover{background:transparent;color:var(--rust);}
+.bts{font-family:'Inter',sans-serif;font-size:16px;font-weight:500;color:var(--salt);background:transparent;border:2px solid var(--salt);padding:14px 28px;cursor:pointer;transition:background .2s,color .2s;border-radius:0;display:inline-block;}
+.bts:hover{background:var(--salt);color:var(--navy);}
+.hst{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--mist);opacity:0;animation:fu .8s ease forwards .8s;}
+.hi{display:flex;align-items:center;justify-content:center;opacity:0;animation:fu 1s ease forwards 1s;}
+#problem{background:var(--salt);padding:var(--sp) 0;}
+.ph{font-family:'Lora',serif;font-weight:700;font-size:48px;color:var(--navy);line-height:1.15;max-width:760px;margin-bottom:20px;}
+.ps{font-size:18px;color:var(--charcoal);max-width:640px;margin-bottom:64px;line-height:1.65;}
+.pc{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-bottom:48px;}
+.pcard{background:var(--white);border:2px solid rgba(10,22,40,.12);border-left:4px solid var(--rust);padding:36px 28px;}
+.pcard:hover{border-color:var(--rust);}
+.pn{font-family:'Lora',serif;font-weight:700;font-size:56px;color:var(--rust);line-height:1;margin-bottom:8px;}
+.pl{font-weight:600;font-size:18px;color:var(--navy);margin-bottom:10px;}
+.pd{font-size:15px;color:var(--charcoal);line-height:1.5;}
+.co{background:var(--charcoal);padding:32px 40px;border-left:4px solid var(--rust);}
+.co p{font-size:16px;color:var(--salt);line-height:1.7;}
+.co strong{color:var(--rust);}
+#solution{background:var(--navy);padding:var(--sp) 0;}
+.sh{font-family:'Lora',serif;font-weight:700;font-size:48px;color:var(--salt);line-height:1.15;max-width:720px;margin-bottom:60px;}
+.sg{display:grid;grid-template-columns:55% 45%;gap:64px;}
+.fr{padding:24px 0;border-top:1px solid rgba(245,240,232,.12);}
+.fr:last-child{border-bottom:1px solid rgba(245,240,232,.12);}
+.fl{font-weight:600;font-size:15px;color:var(--rust);margin-bottom:6px;}
+.fd{font-size:15px;color:var(--salt);line-height:1.55;}
+.bgs{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:32px;}
+.bg{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--salt);background:var(--charcoal);border:1px solid var(--mist);padding:8px 14px;transition:border-color .2s,color .2s;}
+.bg:hover{border-color:var(--rust);color:var(--rust);}
+.sq{font-family:'Lora',serif;font-style:italic;font-size:20px;color:var(--mist);line-height:1.5;margin-top:28px;}
+.sdv{border-top:1px solid var(--rust);margin-bottom:20px;}
+#architecture{background:var(--salt);padding:var(--sp) 0;}
+.ah{font-family:'Lora',serif;font-weight:700;font-size:48px;color:var(--navy);margin-bottom:64px;line-height:1.15;}
+.aw{overflow-x:auto;margin-bottom:32px;}
+.aw svg{min-width:920px;width:100%;height:auto;}
+.ao{display:flex;justify-content:center;gap:40px;margin-top:8px;}
+.ab{border:2px solid var(--steel);padding:12px 24px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--navy);text-align:center;}
+.ac{text-align:center;font-style:italic;font-size:14px;color:var(--mist);margin-top:20px;}
+#how-it-works{background:var(--navy);padding:var(--sp) 0;}
+.wh{font-family:'Lora',serif;font-weight:700;font-size:48px;color:var(--salt);margin-bottom:72px;}
+.ts{display:grid;grid-template-columns:80px 32px 1fr;gap:0 24px;}
+.tn{font-family:'Lora',serif;font-weight:700;font-size:80px;color:rgba(196,82,26,.15);line-height:1;text-align:right;padding-top:4px;}
+.tb{display:flex;flex-direction:column;align-items:center;}
+.td{width:12px;height:12px;background:var(--rust);flex-shrink:0;margin-top:18px;}
+.tl{width:2px;flex:1;background:rgba(196,82,26,.3);min-height:60px;}
+.tc{padding:12px 0 48px;}
+.tt{font-weight:600;font-size:20px;color:var(--salt);margin-bottom:8px;}
+.tdc{font-size:15px;color:var(--mist);line-height:1.65;max-width:620px;}
+#impact{background:var(--salt);padding:var(--sp) 0;}
+.ih{font-family:'Lora',serif;font-weight:700;font-size:48px;color:var(--navy);margin-bottom:64px;}
+.ig{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start;}
+.is{display:grid;grid-template-columns:1fr 1fr;gap:40px;}
+.in{font-family:'Lora',serif;font-weight:700;font-size:48px;color:var(--rust);line-height:1.1;margin-bottom:8px;}
+.il{font-size:14px;color:var(--charcoal);line-height:1.4;}
+.rc{background:var(--charcoal);padding:40px;border:2px solid rgba(143,168,184,.3);}
+.rt{font-family:'Lora',serif;font-weight:700;font-size:22px;color:var(--salt);margin-bottom:24px;}
+.rl{list-style:none;}
+.rl li{font-size:15px;color:var(--mist);line-height:1.6;padding:10px 0 10px 20px;position:relative;border-bottom:1px solid rgba(143,168,184,.12);}
+.rl li:last-child{border-bottom:none;}
+.rl li::before{content:'--';position:absolute;left:0;color:var(--rust);font-weight:700;}
+.rm{background:var(--charcoal);padding:24px 40px;text-align:center;margin-top:48px;}
+.rm p{font-size:16px;color:var(--salt);line-height:1.7;}
+#demo{background:var(--navy);padding:80px 0;text-align:center;}
+.dh{font-family:'Lora',serif;font-weight:700;font-size:40px;color:var(--salt);margin-bottom:48px;}
+.dc{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-bottom:48px;text-align:left;}
+.dcard{background:var(--charcoal);border:2px solid rgba(245,240,232,.2);padding:32px;transition:border-color .2s;}
+.dcard:hover{border-color:var(--rust);}
+.dct{font-weight:600;font-size:17px;color:var(--salt);margin-bottom:8px;margin-top:16px;}
+.dcd{font-size:14px;color:var(--mist);line-height:1.55;}
+.btg{font-family:'Inter',sans-serif;font-size:15px;font-weight:500;color:var(--rust);border:2px solid var(--rust);padding:14px 32px;background:transparent;cursor:pointer;border-radius:0;transition:background .2s,color .2s;display:inline-block;}
+.btg:hover{background:var(--rust);color:var(--white);}
+.btd{font-family:'Inter',sans-serif;font-size:15px;font-weight:500;color:var(--steel);border:2px solid var(--steel);padding:14px 32px;background:transparent;border-radius:0;transition:background .2s,color .2s;display:inline-block;margin-left:16px;}
+.btd:hover{background:var(--steel);color:var(--white);}
+#team{background:var(--salt);padding:var(--sp) 0;}
+.tmh{font-family:'Lora',serif;font-weight:700;font-size:48px;color:var(--navy);margin-bottom:8px;}
+.tms{font-size:18px;color:var(--charcoal);margin-bottom:56px;}
+.tmg{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;}
+.tmc{background:var(--white);border:2px solid rgba(10,22,40,.1);padding:28px;transition:border-color .2s;}
+.tmc:hover{border-color:var(--rust);}
+.tmi{width:56px;height:56px;background:var(--charcoal);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Lora',serif;font-weight:700;font-size:20px;color:var(--salt);margin-bottom:16px;}
+.tmn{font-weight:600;font-size:17px;color:var(--navy);margin-bottom:4px;}
+.tmr{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--rust);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px;}
+.tmdv{border-top:1px solid var(--salt);margin-bottom:14px;}
+.tmd{font-size:13px;color:var(--mist);line-height:1.55;}
+footer{background:var(--navy);border-top:1px solid rgba(245,240,232,.1);padding:64px 0 0;}
+.fg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:48px;padding-bottom:48px;}
+.fw{font-family:'Lora',serif;font-weight:700;font-size:22px;color:var(--salt);letter-spacing:.08em;margin-bottom:12px;}
+.ft{font-size:13px;color:var(--mist);line-height:1.6;margin-bottom:16px;}
+.fgh{font-size:13px;color:var(--rust);}
+.fgh:hover{text-decoration:underline;}
+.flt{font-weight:600;font-size:13px;color:var(--salt);margin-bottom:16px;text-transform:uppercase;letter-spacing:.08em;font-family:'JetBrains Mono',monospace;}
+.fls{list-style:none;}
+.fls li{margin-bottom:10px;}
+.fls a{font-size:14px;color:var(--mist);}
+.fls a:hover{color:var(--salt);}
+.fb{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--mist);line-height:1.7;}
+.fbar{border-top:1px solid rgba(245,240,232,.08);padding:20px 0;text-align:center;}
+.fbar p{font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(143,168,184,.5);}
+@media(max-width:768px){:root{--sp:72px;}.container{padding:0 20px;}.nl,.ng,.nd{display:none;}.hbg{display:flex;}.hg{grid-template-columns:1fr;}.hh{font-size:36px;}.hs{font-size:16px;}.ph,.sh,.ah,.wh,.ih,.tmh{font-size:32px;}.pc{grid-template-columns:1fr;}.sg{grid-template-columns:1fr;}.ig{grid-template-columns:1fr;}.is{grid-template-columns:1fr 1fr;}.dh{font-size:28px;}.dc{grid-template-columns:1fr;}.tmg{grid-template-columns:1fr 1fr;}.fg{grid-template-columns:1fr;}.ts{grid-template-columns:56px 24px 1fr;gap:0 12px;}.tn{font-size:52px;}}
+@media(max-width:480px){.tmg{grid-template-columns:1fr;}.hb{flex-direction:column;}.is{grid-template-columns:1fr;}.btd{margin:12px 0 0;display:block;text-align:center;}}
+  </style>
+</head>
+<body>
+
+<nav role="navigation" aria-label="Main navigation">
+  <div class="ni">
+    <a href="#hero" class="nw">TARANG</a>
+    <ul class="nl" role="list">
+      <li><a href="#problem">Problem</a></li>
+      <li><a href="#solution">Solution</a></li>
+      <li><a href="#architecture">Architecture</a></li>
+      <li><a href="#impact">Impact</a></li>
+      <li><a href="#team">Team</a></li>
+    </ul>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <a href="frontend/dashboard.html" class="nd">Control Room</a>
+      <a href="#" class="ng">View on GitHub</a>
+      <button class="hbg" id="hbg" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</nav>
+<div class="mm" id="mm">
+  <a href="#problem" class="ml">Problem</a>
+  <a href="#solution" class="ml">Solution</a>
+  <a href="#architecture" class="ml">Architecture</a>
+  <a href="#how-it-works" class="ml">How It Works</a>
+  <a href="#impact" class="ml">Impact</a>
+  <a href="#team" class="ml">Team</a>
+  <a href="frontend/dashboard.html" class="nd">Control Room</a>
+  <a href="#" class="ng">GitHub</a>
+</div>
+<section id="hero" aria-label="Hero">
+  <div class="container">
+    <div class="hg">
+      <div>
+        <p class="he">COASTAL INNOVATION HACKATHON 2026 &mdash; TEAM CIPHER</p>
+        <h1 class="hh">SOS from the Sea.<br>Delivered Without<br>the Internet.</h1>
+        <p class="hs">TARANG is an AI-powered LoRa mesh rescue network built for India's 4 million fisherfolk &mdash; reaching distress signals 15&ndash;20 km offshore, even with zero cellular coverage.</p>
+        <div class="hb">
+          <a href="#how-it-works" class="btp">See How It Works</a>
+          <a href="#architecture" class="bts">View Architecture</a>
+        </div>
+        <hr class="dv" style="margin-bottom:24px;"/>
+        <p class="hst">4M+ fisherfolk at risk &nbsp;|&nbsp; 7,500 km coastline &nbsp;|&nbsp; &#8377;1,200 device cost</p>
+      </div>
+      <div class="hi" aria-label="Fishing boat LoRa signal illustration">
+        <svg viewBox="0 0 440 400" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:440px;" role="img">
+          <path d="M220 155 Q268 108 312 120" stroke="#C4521A" stroke-width="2.5" stroke-dasharray="6 4" fill="none" stroke-linecap="round"/>
+          <path d="M220 155 Q280 90 338 106" stroke="#C4521A" stroke-width="2" stroke-dasharray="6 4" fill="none" stroke-linecap="round" opacity=".7"/>
+          <path d="M220 155 Q294 70 366 90" stroke="#C4521A" stroke-width="1.5" stroke-dasharray="6 4" fill="none" stroke-linecap="round" opacity=".4"/>
+          <circle cx="220" cy="155" r="5" fill="#C4521A"/>
+          <line x1="220" y1="155" x2="220" y2="228" stroke="#F5F0E8" stroke-width="3" stroke-linecap="round"/>
+          <polygon points="220,162 258,218 220,218" fill="rgba(245,240,232,.18)" stroke="#F5F0E8" stroke-width="1.5"/>
+          <path d="M170 244 L270 244 L258 264 L182 264 Z" fill="#F5F0E8"/>
+          <rect x="200" y="228" width="40" height="16" fill="rgba(245,240,232,.6)"/>
+          <path d="M80 278 Q120 270 160 278 Q200 286 240 278 Q280 270 320 278 Q356 286 380 276" stroke="#2E6B8A" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path d="M60 295 Q100 287 140 295 Q180 303 220 295 Q260 287 300 295 Q340 303 380 295" stroke="#2E6B8A" stroke-width="2" fill="none" stroke-linecap="round" opacity=".6"/>
+          <path d="M90 312 Q130 304 170 312 Q210 320 250 312 Q290 304 330 312 Q360 318 390 312" stroke="#2E6B8A" stroke-width="1.5" fill="none" stroke-linecap="round" opacity=".3"/>
+          <text x="285" y="120" font-family="'JetBrains Mono',monospace" font-size="11" fill="#8FA8B8">LoRa Signal</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="problem" aria-label="The Problem">
+  <div class="container">
+    <span class="sl">01 / PROBLEM</span>
+    <h2 class="ph">When a boat capsizes 15 km from shore, who answers the call?</h2>
+    <p class="ps">There is no answer. India's fishing communities operate beyond cellular range every single day &mdash; with no reliable way to send or receive emergency signals.</p>
+    <div class="pc">
+      <article class="pcard" aria-label="Coverage gap">
+        <div class="pn" id="c1" data-target="15" data-suffix="&ndash;20 km">0</div>
+        <div class="pl">from shore</div>
+        <p class="pd">Zero cellular coverage in the zone where most emergencies happen</p>
+      </article>
+      <article class="pcard" aria-label="Fisherfolk at risk">
+        <div class="pn" id="c2" data-target="4" data-suffix="M+">0</div>
+        <div class="pl">fisherfolk at risk</div>
+        <p class="pd">No reliable offshore distress channel for small-scale fishing communities</p>
+      </article>
+      <article class="pcard" aria-label="Response delay">
+        <div class="pn" id="c3" data-target="6" data-prefix="3&ndash;" data-suffix=" hrs">0</div>
+        <div class="pl">average delay</div>
+        <p class="pd">Time lost before shore receives word of a boat in distress</p>
+      </article>
+    </div>
+    <div class="co" role="note">
+      <p>Existing solutions &mdash; VHF radios, satellite phones &mdash; cost <strong>&#8377;40,000&ndash;&#8377;2,00,000 per unit</strong>. A fisherman earning <strong>&#8377;8,000 a month</strong> cannot afford this. <strong>TARANG costs &#8377;1,200.</strong></p>
+    </div>
+  </div>
+</section>
+
+<section id="solution" aria-label="The Solution">
+  <div class="container">
+    <span class="sl">02 / SOLUTION</span>
+    <h2 class="sh">TARANG &mdash; The network the sea doesn't have. Until now.</h2>
+    <div class="sg">
+      <div>
+        <div class="fr"><div class="fl">LoRa Mesh SOS Device</div><p class="fd">Works with zero cellular. Relays distress signals boat-to-boat-to-shore, up to 20 km offshore.</p></div>
+        <div class="fr"><div class="fl">Auto-Anomaly Detection</div><p class="fd">Onboard AI flags capsizing and drift from motion + GPS. Triggers SOS automatically &mdash; even if no one presses a button.</p></div>
+        <div class="fr"><div class="fl">AI Triage Agent (Groq + Mistral)</div><p class="fd">Shore-side dashboard prioritizes alerts by severity, weather, and distance. Recommends nearest rescue asset in real time.</p></div>
+        <div class="fr"><div class="fl">Voice-First Multilingual Alerts</div><p class="fd">Kannada, Tulu, Malayalam, Hindi. Built for low-literacy users. No smartphone required.</p></div>
+        <div class="fr"><div class="fl">Proactive Risk Broadcast</div><p class="fd">Pushes live cyclone and wave-height warnings to boats already at sea, before they hit danger.</p></div>
+        <div class="fr"><div class="fl">&#8377;1,200 Per Unit</div><p class="fd">Solar-rechargeable. No recurring data cost. Deployable by any fishing cooperative today.</p></div>
+      </div>
+      <div>
+        <div class="bgs">
+          <span class="bg">ESP32</span><span class="bg">SX1276 LoRa</span><span class="bg">NEO-6M GPS</span>
+          <span class="bg">MPU6050 IMU</span><span class="bg">FastAPI</span><span class="bg">React</span>
+          <span class="bg">Leaflet.js</span><span class="bg">Groq API</span><span class="bg">Mistral AI</span>
+          <span class="bg">Twilio SMS</span><span class="bg">IMD Weather</span><span class="bg">Python</span>
+          <span class="bg">Node.js</span><span class="bg">WebSockets</span><span class="bg">SQLite</span>
+        </div>
+        <hr class="sdv"/>
+        <p class="sq">&ldquo;The fisherman doesn&rsquo;t need an app. He needs a button that works when the wave hits.&rdquo;</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="architecture" aria-label="System Architecture">
+  <div class="container">
+    <span class="sl">03 / ARCHITECTURE</span>
+    <h2 class="ah">From ocean to control room &mdash; in seconds.</h2>
+    <div class="aw" role="img" aria-label="System architecture flow: Fishing Boat to Mesh Relay to Shore Station to AI Cloud to Control Room">
+      <svg viewBox="0 0 960 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- NODE 1: Fishing Boat -->
+        <rect x="10" y="40" width="155" height="155" fill="#1C2B3A" stroke="#C4521A" stroke-width="2"/>
+        <line x1="87" y1="62" x2="87" y2="90" stroke="#F5F0E8" stroke-width="2"/>
+        <polygon points="87,66 108,88 87,88" fill="rgba(245,240,232,.18)" stroke="#F5F0E8" stroke-width="1.2"/>
+        <path d="M65 100 L110 100 L104 112 L70 112 Z" fill="#F5F0E8"/>
+        <rect x="78" y="90" width="18" height="10" fill="rgba(245,240,232,.55)"/>
+        <text x="87" y="136" text-anchor="middle" font-family="Inter,sans-serif" font-weight="600" font-size="12" fill="#F5F0E8">Fishing Boat</text>
+        <text x="87" y="152" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#8FA8B8">ESP32 + LoRa</text>
+        <text x="87" y="165" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#8FA8B8">GPS + IMU</text>
+        <!-- Arrow 1 -->
+        <line x1="165" y1="117" x2="213" y2="117" stroke="#C4521A" stroke-width="2" stroke-dasharray="6 4"/>
+        <polygon points="213,113 223,117 213,121" fill="#C4521A"/>
+        <text x="189" y="109" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#8FA8B8">LoRa ~8km</text>
+        <!-- NODE 2: Mesh Relay -->
+        <rect x="223" y="40" width="155" height="155" fill="#1C2B3A" stroke="#2E6B8A" stroke-width="2"/>
+        <circle cx="284" cy="74" r="8" stroke="#8FA8B8" stroke-width="1.5" fill="none"/>
+        <circle cx="304" cy="90" r="8" stroke="#8FA8B8" stroke-width="1.5" fill="none"/>
+        <circle cx="284" cy="106" r="8" stroke="#8FA8B8" stroke-width="1.5" fill="none"/>
+        <line x1="292" y1="74" x2="296" y2="90" stroke="#8FA8B8" stroke-width="1.2"/>
+        <line x1="292" y1="106" x2="296" y2="90" stroke="#8FA8B8" stroke-width="1.2"/>
+        <line x1="284" y1="82" x2="284" y2="98" stroke="#8FA8B8" stroke-width="1.2"/>
+        <text x="300" y="136" text-anchor="middle" font-family="Inter,sans-serif" font-weight="600" font-size="12" fill="#F5F0E8">Mesh Relay</text>
+        <text x="300" y="152" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#8FA8B8">Nearby boats</text>
+        <text x="300" y="165" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#8FA8B8">hop-to-hop</text>
+        <!-- Arrow 2 -->
+        <line x1="378" y1="117" x2="426" y2="117" stroke="#C4521A" stroke-width="2" stroke-dasharray="6 4"/>
+        <polygon points="426,113 436,117 426,121" fill="#C4521A"/>
+        <text x="402" y="109" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#8FA8B8">LoRa hop</text>
+        <!-- NODE 3: Shore Station -->
+        <rect x="436" y="40" width="155" height="155" fill="#1C2B3A" stroke="#2E6B8A" stroke-width="2"/>
+        <line x1="513" y1="102" x2="513" y2="78" stroke="#F5F0E8" stroke-width="2"/>
+        <path d="M501 85 Q513 78 525 85" stroke="#8FA8B8" stroke-width="1.5" fill="none"/>
+        <path d="M496 92 Q513 82 530 92" stroke="#8FA8B8" stroke-width="1.2" fill="none" opacity=".6"/>
+        <rect x="505" y="102" width="16" height="8" fill="#F5F0E8"/>
+        <text x="513" y="136" text-anchor="middle" font-family="Inter,sans-serif" font-weight="600" font-size="12" fill="#F5F0E8">Shore Station</text>
+        <text x="513" y="152" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#8FA8B8">Base receiver</text>
+        <text x="513" y="165" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#8FA8B8">4G / WiFi uplink</text>
+        <!-- Arrow 3 -->
+        <line x1="591" y1="117" x2="639" y2="117" stroke="#C4521A" stroke-width="2"/>
+        <polygon points="639,113 649,117 639,121" fill="#C4521A"/>
+        <text x="615" y="109" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#8FA8B8">4G / WiFi</text>
+        <!-- NODE 4: AI Cloud -->
+        <rect x="649" y="40" width="155" height="155" fill="#C4521A"/>
+        <path d="M687 98 Q687 82 702 82 Q704 74 716 74 Q728 74 730 82 Q744 82 744 98 Z" stroke="white" stroke-width="1.5" fill="rgba(255,255,255,.2)"/>
+        <text x="726" y="136" text-anchor="middle" font-family="Inter,sans-serif" font-weight="600" font-size="12" fill="#FFF">AI Cloud</text>
+        <text x="726" y="152" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="rgba(255,255,255,.82)">Groq + Mistral</text>
+        <text x="726" y="165" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="rgba(255,255,255,.82)">Triage + SQLite</text>
+        <!-- Arrow 4 -->
+        <line x1="804" y1="117" x2="852" y2="117" stroke="#C4521A" stroke-width="2"/>
+        <polygon points="852,113 862,117 852,121" fill="#C4521A"/>
+        <text x="828" y="109" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#8FA8B8">Dispatch</text>
+        <!-- NODE 5: Control Room -->
+        <rect x="862" y="40" width="88" height="155" fill="#1C2B3A" stroke="#8FA8B8" stroke-width="2"/>
+        <rect x="874" y="64" width="64" height="40" stroke="#F5F0E8" stroke-width="1.5" fill="none"/>
+        <line x1="900" y1="104" x2="900" y2="112" stroke="#F5F0E8" stroke-width="1.5"/>
+        <line x1="890" y1="112" x2="910" y2="112" stroke="#F5F0E8" stroke-width="1.5"/>
+        <text x="906" y="136" text-anchor="middle" font-family="Inter,sans-serif" font-weight="600" font-size="10" fill="#F5F0E8">Control</text>
+        <text x="906" y="150" text-anchor="middle" font-family="Inter,sans-serif" font-weight="600" font-size="10" fill="#F5F0E8">Room</text>
+        <text x="906" y="165" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="8" fill="#8FA8B8">React + Map</text>
+        <!-- Down split arrows -->
+        <line x1="906" y1="195" x2="906" y2="222" stroke="#C4521A" stroke-width="1.5"/>
+        <line x1="820" y1="222" x2="950" y2="222" stroke="#C4521A" stroke-width="1.5"/>
+        <line x1="840" y1="222" x2="840" y2="244" stroke="#C4521A" stroke-width="1.5"/>
+        <polygon points="836,244 840,254 844,244" fill="#C4521A"/>
+        <line x1="940" y1="222" x2="940" y2="244" stroke="#C4521A" stroke-width="1.5"/>
+        <polygon points="936,244 940,254 944,244" fill="#C4521A"/>
+      </svg>
+    </div>
+    <div class="ao">
+      <div class="ab">Coast Guard / Rescue Asset</div>
+      <div class="ab">SMS + Voice Alert to Family</div>
+    </div>
+    <p class="ac">Works with zero cellular signal. The mesh carries the packet until it reaches shore.</p>
+  </div>
+</section>
+
+<section id="how-it-works" aria-label="How It Works">
+  <div class="container">
+    <span class="sl">04 / SYSTEM FLOW</span>
+    <h2 class="wh">Six steps. One saved life.</h2>
+    <div role="list">
+      <div class="ts" role="listitem"><div class="tn" aria-hidden="true">01</div><div class="tb" aria-hidden="true"><div class="td"></div><div class="tl"></div></div><div class="tc"><div class="tt">Track</div><p class="tdc">The SOS device monitors GPS position and motion data continuously. No action needed from the fisherman.</p></div></div>
+      <div class="ts" role="listitem"><div class="tn" aria-hidden="true">02</div><div class="tb" aria-hidden="true"><div class="td"></div><div class="tl"></div></div><div class="tc"><div class="tt">Trigger</div><p class="tdc">A capsize or drift anomaly is detected automatically by the IMU, or the fisherman presses the physical SOS button.</p></div></div>
+      <div class="ts" role="listitem"><div class="tn" aria-hidden="true">03</div><div class="tb" aria-hidden="true"><div class="td"></div><div class="tl"></div></div><div class="tc"><div class="tt">Relay</div><p class="tdc">The distress packet &mdash; GPS coordinates, vessel ID, timestamp &mdash; hops boat-to-boat via LoRa mesh until it reaches a shore station.</p></div></div>
+      <div class="ts" role="listitem"><div class="tn" aria-hidden="true">04</div><div class="tb" aria-hidden="true"><div class="td"></div><div class="tl"></div></div><div class="tc"><div class="tt">Triage</div><p class="tdc">The AI agent on the cloud scores severity: weather conditions, distance from shore, vessel type, anomaly type. Assigns the nearest responder.</p></div></div>
+      <div class="ts" role="listitem"><div class="tn" aria-hidden="true">05</div><div class="tb" aria-hidden="true"><div class="td"></div><div class="tl"></div></div><div class="tc"><div class="tt">Dispatch</div><p class="tdc">The control-room dashboard displays the live alert on a Leaflet map. Operator confirms and dispatches Coast Guard or nearest vessel.</p></div></div>
+      <div class="ts" role="listitem"><div class="tn" aria-hidden="true">06</div><div class="tb" aria-hidden="true"><div class="td"></div></div><div class="tc"><div class="tt">Alert</div><p class="tdc">A multilingual voice call and SMS reaches the fisherman's family and nearby vessels. Status updates flow until rescue is confirmed.</p></div></div>
+    </div>
+  </div>
+</section>
+<section id="impact" aria-label="Impact">
+  <div class="container">
+    <span class="sl">05 / IMPACT</span>
+    <h2 class="ih">Built for the people who feed a nation.</h2>
+    <div class="ig">
+      <div class="is">
+        <div><div class="in">4M+</div><div class="il">fisherfolk across India's coastline</div></div>
+        <div><div class="in">7,500 km</div><div class="il">of coastline with zero offshore safety net</div></div>
+        <div><div class="in">&#8377;1,200</div><div class="il">target device cost, solar-powered, no data plan</div></div>
+        <div><div class="in">4 langs</div><div class="il">Kannada, Tulu, Malayalam, Hindi &mdash; voice-first</div></div>
+      </div>
+      <div class="rc" aria-label="Revenue and scale path">
+        <div class="rt">Revenue &amp; Scale Path</div>
+        <ul class="rl">
+          <li>State Fisheries Department and Coast Guard adoption &mdash; govt safety mandate drives procurement</li>
+          <li>CSR-funded device subsidies through fishing cooperatives</li>
+          <li>SaaS control-room dashboard for ports and private fleets</li>
+          <li>Hardware licensing to coastal states for cyclone and flood alert reuse</li>
+        </ul>
+      </div>
+    </div>
+    <div class="rm">
+      <p>Start: Mangaluru / Kasaragod coastal cluster &nbsp;&rarr;&nbsp; State-wide Karnataka rollout &nbsp;&rarr;&nbsp; Pan-India coastal safety network</p>
+    </div>
+  </div>
+</section>
+
+<section id="demo" aria-label="Demo">
+  <div class="container">
+    <span class="sl" style="display:block;text-align:center;">HACKATHON BUILD</span>
+    <h2 class="dh">The demo includes a live working prototype.</h2>
+    <div class="dc">
+      <article class="dcard">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true"><rect x="8" y="8" width="24" height="24" stroke="#C4521A" stroke-width="2"/><circle cx="14" cy="14" r="2" fill="#8FA8B8"/><circle cx="26" cy="14" r="2" fill="#8FA8B8"/><circle cx="14" cy="26" r="2" fill="#8FA8B8"/><circle cx="26" cy="26" r="2" fill="#8FA8B8"/><rect x="17" y="17" width="6" height="6" fill="#C4521A"/></svg>
+        <div class="dct">ESP32 + LoRa SOS Device</div>
+        <p class="dcd">Physical prototype with manual SOS + auto-anomaly trigger via MPU6050 IMU</p>
+      </article>
+      <article class="dcard">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true"><rect x="4" y="8" width="32" height="22" stroke="#C4521A" stroke-width="2"/><line x1="18" y1="30" x2="18" y2="36" stroke="#C4521A" stroke-width="2"/><line x1="22" y1="30" x2="22" y2="36" stroke="#C4521A" stroke-width="2"/><line x1="12" y1="36" x2="28" y2="36" stroke="#C4521A" stroke-width="2"/><line x1="4" y1="26" x2="36" y2="26" stroke="#8FA8B8" stroke-width="1"/><rect x="8" y="13" width="8" height="8" fill="rgba(196,82,26,.2)" stroke="#C4521A" stroke-width="1"/><line x1="20" y1="15" x2="30" y2="15" stroke="#8FA8B8" stroke-width="1"/><line x1="20" y1="19" x2="28" y2="19" stroke="#8FA8B8" stroke-width="1"/></svg>
+        <div class="dct">FastAPI + Control Dashboard</div>
+        <p class="dcd">Live Leaflet map, WebSocket alert feed, Groq AI triage, severity scoring, dispatch panel</p>
+      </article>
+      <article class="dcard">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true"><circle cx="20" cy="20" r="16" stroke="#C4521A" stroke-width="2"/><polygon points="16,14 16,26 28,20" fill="#C4521A"/></svg>
+        <div class="dct">End-to-End Simulation</div>
+        <p class="dcd">Recorded distress-to-dispatch demo showing full 6-step flow via /api/simulate/sos endpoint</p>
+      </article>
+    </div>
+    <a href="#" class="btg">View GitHub Repository &rarr;</a>
+    <a href="frontend/dashboard.html" class="btd">Open Control Room &rarr;</a>
+  </div>
+</section>
+<section id="team" aria-label="Team">
+  <div class="container">
+    <span class="sl">06 / TEAM</span>
+    <h2 class="tmh">Team Cipher</h2>
+    <p class="tms">HKBK College of Engineering, Bengaluru &mdash; Information Science Engineering, Batch 2024&ndash;28</p>
+    <div class="tmg">
+      <article class="tmc" aria-label="Abdul Sameer">
+        <div class="tmi" aria-hidden="true">AS</div>
+        <div class="tmn">Abdul Sameer</div>
+        <div class="tmr">TEAM LEAD / AI &amp; BACKEND</div>
+        <hr class="tmdv"/>
+        <p class="tmd">Google Student Ambassador &middot; Oracle GenAI Certified &middot; Full-stack AI developer</p>
+      </article>
+      <article class="tmc">
+        <div class="tmi" aria-hidden="true">M2</div>
+        <div class="tmn">[Member Name]</div>
+        <div class="tmr">[ROLE]</div>
+        <hr class="tmdv"/>
+        <p class="tmd">[Add member details &mdash; name, role, and achievements]</p>
+      </article>
+      <article class="tmc">
+        <div class="tmi" aria-hidden="true">M3</div>
+        <div class="tmn">[Member Name]</div>
+        <div class="tmr">[ROLE]</div>
+        <hr class="tmdv"/>
+        <p class="tmd">[Add member details &mdash; name, role, and achievements]</p>
+      </article>
+      <article class="tmc">
+        <div class="tmi" aria-hidden="true">M4</div>
+        <div class="tmn">[Member Name]</div>
+        <div class="tmr">[ROLE]</div>
+        <hr class="tmdv"/>
+        <p class="tmd">[Add member details &mdash; name, role, and achievements]</p>
+      </article>
+    </div>
+  </div>
+</section>
+<footer aria-label="Site footer">
+  <div class="container">
+    <div class="fg">
+      <div>
+        <div class="fw">TARANG</div>
+        <p class="ft">An offline-capable maritime emergency rescue network for India's 4 million fisherfolk.</p>
+        <a href="#" class="fgh">GitHub Repository &rarr;</a>
+      </div>
+      <div>
+        <div class="flt">Navigation</div>
+        <ul class="fls" role="list">
+          <li><a href="#problem">Problem</a></li>
+          <li><a href="#solution">Solution</a></li>
+          <li><a href="#architecture">Architecture</a></li>
+          <li><a href="#how-it-works">How It Works</a></li>
+          <li><a href="#impact">Impact</a></li>
+          <li><a href="#team">Team</a></li>
+          <li><a href="frontend/dashboard.html" style="color:var(--steel);">Control Room &rarr;</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="fb">Built by Team Cipher for CIH 2026.<br>HKBK College of Engineering<br>Bengaluru, Karnataka</p>
+      </div>
+    </div>
+  </div>
+  <div class="fbar"><div class="container"><p>&copy; 2026 Team Cipher &mdash; Coastal Innovation Hackathon</p></div></div>
+</footer>
+<script>
+'use strict';
+(function(){
+  const hbg=document.getElementById('hbg');
+  const mm=document.getElementById('mm');
+  hbg.addEventListener('click',function(){
+    const o=mm.classList.toggle('open');
+    hbg.classList.toggle('open',o);
+    hbg.setAttribute('aria-expanded',String(o));
+    document.body.style.overflow=o?'hidden':'';
+  });
+  document.querySelectorAll('.ml,.mm .ng,.mm .nd').forEach(function(l){
+    l.addEventListener('click',function(){
+      mm.classList.remove('open');
+      hbg.classList.remove('open');
+      hbg.setAttribute('aria-expanded','false');
+      document.body.style.overflow='';
+    });
+  });
+  function animCounter(el){
+    var t=parseFloat(el.dataset.target);
+    var pre=el.dataset.prefix||'';
+    var suf=el.dataset.suffix||'';
+    var dur=1500;
+    var s=performance.now();
+    function step(now){
+      var p=Math.min((now-s)/dur,1);
+      var e=1-Math.pow(1-p,3);
+      var c=t*e;
+      el.textContent=pre+Math.floor(c)+suf;
+      if(p<1){requestAnimationFrame(step);}
+      else{el.textContent=pre+t+suf;}
+    }
+    requestAnimationFrame(step);
+  }
+  var obs=new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if(en.isIntersecting&&!en.target.dataset.done){
+        en.target.dataset.done='1';
+        animCounter(en.target);
+      }
+    });
+  },{threshold:0.4});
+  ['c1','c2','c3'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el){obs.observe(el);}
+  });
+  document.querySelectorAll('a[href^="#"]').forEach(function(a){
+    a.addEventListener('click',function(e){
+      var h=this.getAttribute('href');
+      if(h==='#'){return;}
+      var t=document.querySelector(h);
+      if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth',block:'start'});}
+    });
+  });
+})();
+</script>
+</body>
+</html>
+

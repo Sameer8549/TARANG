@@ -1,0 +1,35 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.venv/
+venv/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local generated bundles and caches
+_local_pydeps/
+tools/zcatalyst-cli/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Build noise
+dist/
+build/
+coverage/
