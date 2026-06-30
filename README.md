@@ -17,6 +17,20 @@ Working deployment:
 - [Operations Dashboard](https://tarang-50043555806.development.catalystappsail.in/dashboard)
 - [How It Works](https://tarang-50043555806.development.catalystappsail.in/how-it-works)
 
+## Live Screenshots
+
+### Home
+
+![TARANG home](screenshots/repo-home.png)
+
+### Dashboard
+
+![TARANG dashboard](screenshots/repo-dashboard.png)
+
+### How It Works
+
+![TARANG how it works](screenshots/repo-how-it-works.png)
+
 ## Why TARANG
 
 Coastal response tools often break down when they are noisy, slow, or built like a slideshow instead of an operational product. TARANG is designed around the real control-room loop:
