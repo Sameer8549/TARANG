@@ -9,6 +9,14 @@ The project combines:
 - a Catalyst-ready Node AppSail service that powers the current live deployment
 - seeded legacy rescue data so the system feels like a working operations center, not an empty demo
 
+## Live Demo
+
+Working deployment:
+
+- [TARANG Live App](https://tarang-50043555806.development.catalystappsail.in)
+- [Operations Dashboard](https://tarang-50043555806.development.catalystappsail.in/dashboard)
+- [How It Works](https://tarang-50043555806.development.catalystappsail.in/how-it-works)
+
 ## Why TARANG
 
 Coastal response tools often break down when they are noisy, slow, or built like a slideshow instead of an operational product. TARANG is designed around the real control-room loop:
