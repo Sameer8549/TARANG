@@ -233,12 +233,12 @@ setInterval(()=>{
   const vc=document.getElementById('v-clk');if(vc)vc.textContent=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'})+' IST';
 },1000);
 
-const VN  = {'VES-001':'Ananya Hegde','VES-002':'Kiran Shetty','VES-003':'Meera Gowda','VES-004':'Prakash Naik','VES-005':'Nandini Rao'};
-const VNKN= {'VES-001':'ಮಂಗಳ ದೇವಿ','VES-002':'ಸರಸ್ವತಿ','VES-003':'ಲಕ್ಷ್ಮಿ ಪ್ರಸಾದ','VES-004':'ಸೀ ಹಾಕ್','VES-005':'ಬ್ಲೂ ಪರ್ಲ್'};
-const VO  = {'VES-001':'Raghavendra Hegde','VES-002':'Savitha Shetty','VES-003':'Basavaraj Gowda','VES-004':'Deepa Naik','VES-005':'Manjunath Rao'};
-const VP  = {'VES-001':[12.922,74.612],'VES-002':[12.794,74.832],'VES-003':[12.841,74.780],'VES-004':[12.885,74.710],'VES-005':[12.956,74.545]};
-const VB  = {'VES-001':87,'VES-002':52,'VES-003':94,'VES-004':23,'VES-005':71};
-const VS  = {'VES-001':-72,'VES-002':-88,'VES-003':-79,'VES-004':-102,'VES-005':-81};
+const VB  = {'VES-001':87,'VES-002':52,'VES-003':94,'VES-004':68,'VES-005':71};
+const VS  = {'VES-001':-72,'VES-002':-88,'VES-003':-79,'VES-004':-76,'VES-005':-81};
+const TYPE_LABEL={
+  sos_manual:'Manual SOS',capsize:'Capsize',medical:'Medical emergency',
+  engine_fail:'Engine failure',engine_failure:'Engine failure',drift:'Drift'
+};
 
 function batClass(p){return p>60?'ok':p>30?'low':'crit';}
 function sigBars(rssi){
@@ -256,27 +256,42 @@ async function loadVessels(){
     ]);
     vessels=await vr.json();alerts=await ar.json();
   }catch{
-    vessels=Object.entries(VN).map(([id,name])=>({id,name,owner:VO[id],status:'active',lat:VP[id][0],lng:VP[id][1],battery_pct:VB[id]}));
-    alerts=[];
+    vessels=[];alerts=[];
   }
   const grid=document.getElementById('vessel-grid');
-  if(!vessels.length){grid.innerHTML='<div style="grid-column:1/-1;padding:48px;text-align:center;color:var(--mist)">No vessels found</div>';return;}
-  grid.innerHTML=vessels.map(v=>{
-    const myA=alerts.filter(a=>a.vessel_id===v.id||a.vessel_name===v.name);
-    const active=myA.filter(a=>(a.status||'active')==='active').length;
-    const dispatched=myA.filter(a=>(a.status||'')==='dispatched').length;
-    const resolved=myA.filter(a=>(a.status||'')==='resolved').length;
-    const inDis=active>0||dispatched>0;
-    const pos=v.lat?`${parseFloat(v.lat).toFixed(4)}°N, ${parseFloat(v.lng).toFixed(4)}°E`:'—';
-    const bat=v.battery_pct||VB[v.id]||80;
+  const liveCases=alerts
+    .map(a=>({...a,id:a.id||a.alert_id,status:a.status||'active'}))
+    .filter(a=>a.status!=='resolved')
+    .sort((a,b)=>{
+      const order={active:0,triaged:1,dispatched:2,resolved:3};
+      const severity={critical:0,high:1,medium:2,low:3};
+      return (order[a.status]??9)-(order[b.status]??9)
+        || (severity[a.severity]??9)-(severity[b.severity]??9)
+        || new Date(b.created_at||0)-new Date(a.created_at||0);
+    });
+  if(!liveCases.length && !vessels.length){
+    grid.innerHTML='<div style="grid-column:1/-1;padding:48px;text-align:center;color:var(--mist)">Live fleet data unavailable. Check backend health and refresh.</div>';
+    return;
+  }
+  const vesselById=new Map((vessels||[]).map(v=>[v.id,v]));
+  const cards=liveCases.length ? liveCases : (vessels||[]).map(v=>({id:`fleet-${v.id}`,vessel_id:v.id,vessel_name:v.name,status:v.status||'active',lat:v.lat,lng:v.lng,battery_pct:v.battery_pct,alert_type:'fleet',severity:'medium',distance_km:null,created_at:new Date().toISOString()}));
+  grid.innerHTML=cards.map(a=>{
+    const v=vesselById.get(a.vessel_id)||{};
+    const isCase=!String(a.id).startsWith('fleet-');
+    const pos=a.lat?`${parseFloat(a.lat).toFixed(4)}°N, ${parseFloat(a.lng).toFixed(4)}°E`:'—';
+    const bat=a.battery_pct||v.battery_pct||VB[a.vessel_id]||80;
     const bc=batClass(bat);
-    const rssi=VS[v.id]||(-70-Math.floor(Math.random()*40));
+    const rssi=VS[a.vessel_id]||(-70-Math.floor(Math.random()*30));
+    const mins=Math.max(0,Math.floor((Date.now()-new Date(a.created_at||Date.now()).getTime())/60000));
+    const openForVessel=alerts.filter(x=>x.vessel_id===a.vessel_id && (x.status==='active'||x.status==='triaged'||x.status==='dispatched')).length;
+    const resolvedForVessel=alerts.filter(x=>x.vessel_id===a.vessel_id && x.status==='resolved').length;
+    const href=isCase?`/dashboard?case=${encodeURIComponent(a.id)}`:`/dashboard?vessel=${encodeURIComponent(a.vessel_id||'')}`;
     return `<div class="vc">
-      <div class="vc-status ${inDis?'vs-distress':'vs-active'}">${inDis?'⚠ DISTRESS':'● ACTIVE'}</div>
-      <div class="vc-id">${v.id}</div>
-      <div class="vc-name">${v.name||VN[v.id]}</div>
-      <div class="vc-kn">${VNKN[v.id]||''}</div>
-      <div class="vc-owner">${v.owner||VO[v.id]||'—'}</div>
+      <div class="vc-status ${isCase?'vs-distress':'vs-active'}">${isCase?(a.status==='dispatched'?'→ DISPATCHED':'⚠ ACTIVE SOS'):'● ONLINE'}</div>
+      <div class="vc-id">${a.vessel_id||'LIVE'}</div>
+      <div class="vc-name">${a.vessel_name||v.name||a.vessel_id||'Live rescue case'}</div>
+      <div class="vc-kn">${isCase?(TYPE_LABEL[a.alert_type]||a.alert_type||'SOS'):'Fleet telemetry'}</div>
+      <div class="vc-owner">${isCase?`${a.distance_km||'?'} km offshore · ${mins} min ago`:(v.owner||'Coastal rescue unit')}</div>
       <div class="vc-pos">📍 ${pos}</div>
       <div class="bat-row">
         <span class="bat-lbl">Battery</span>
@@ -289,11 +304,11 @@ async function loadVessels(){
         <span class="sig-val">${rssi} dBm</span>
       </div>
       <div class="vc-stats">
-        <div class="vcs"><div class="vcs-n o">${myA.length}</div><div class="vcs-l">Alerts</div></div>
-        <div class="vcs"><div class="vcs-n ${inDis?'r':'g'}">${active+dispatched}</div><div class="vcs-l">Open</div></div>
-        <div class="vcs"><div class="vcs-n g">${resolved}</div><div class="vcs-l">Resolved</div></div>
+        <div class="vcs"><div class="vcs-n o">${a.severity||'live'}</div><div class="vcs-l">Severity</div></div>
+        <div class="vcs"><div class="vcs-n ${openForVessel?'r':'g'}">${openForVessel}</div><div class="vcs-l">Open</div></div>
+        <div class="vcs"><div class="vcs-n g">${resolvedForVessel}</div><div class="vcs-l">Resolved</div></div>
       </div>
-      <a class="vc-btn ${inDis?'vc-btn-sos':''}" href="/dashboard">${inDis?'🆘 VIEW ACTIVE SOS →':'View on Dashboard →'}</a>
+      <a class="vc-btn ${isCase?'vc-btn-sos':''}" href="${href}">${isCase?'VIEW ACTIVE SOS →':'View on Dashboard →'}</a>
     </div>`;
   }).join('');
 }

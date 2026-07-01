@@ -536,6 +536,10 @@ let selId=null, selVesselId=null, pendingAssistVesselId=null, filterVal='all', s
 let aMkr={}, vMkr={}, vTrail={}, vPts={}, rMkr={}, etaT={}, rescueState={}, isolatedAlertId=null;
 let profileNameIndex={};
 let _did=100;
+const deepLinkParams=new URLSearchParams(window.location.search);
+const deepLinkCaseId=deepLinkParams.get('case')||deepLinkParams.get('alert')||deepLinkParams.get('alert_id');
+const deepLinkVesselId=deepLinkParams.get('vessel')||deepLinkParams.get('vessel_id');
+let deepLinkHandled=false;
 
 function tr(key){return (UI[selLang]&&UI[selLang][key]) || UI.en[key] || key;}
 function typeLabel(type){return selLang==='kn' ? (TLKN[type]||type) : (TLBL[type]||type);}
@@ -854,15 +858,15 @@ async function init(){
   try{
     const d=await apiFetch('/alerts?limit=100');
     alerts=d.map(a=>({...a,id:a.id||a.alert_id}));
-    renderList();alerts.forEach(pinAlert);syncKPI();
+    renderList();alerts.forEach(pinAlert);syncKPI();handleDeepLink();
   }catch{syslog(selLang==='kn'?'ಪರೀಕ್ಷಾ ಡೇಟಾ ಲೋಡ್ ಆಗುತ್ತಿದೆ':'Demo mode loading data');seedDemo();}
   // Vessels
   try{
     vessels=await apiFetch('/vessels');
-    vessels.forEach(pinVessel);
+    vessels.forEach(pinVessel);handleDeepLink();
   }catch{
     vessels=Object.entries(VN).map(([id,name])=>({id,name,owner:VO[id],status:'active',lat:VP[id][0],lng:VP[id][1],battery_pct:VB[id]||80}));
-    vessels.forEach(pinVessel);
+    vessels.forEach(pinVessel);handleDeepLink();
   }
   renderVessels();
   // Weather
@@ -1008,6 +1012,21 @@ function selAlert(id){
   document.getElementById('right').classList.add('open');
   if(aMkr[id]){map.flyTo([a.lat,a.lng],13,{duration:1.2});setTimeout(()=>aMkr[id].openPopup(),1300);}
   focusMobileOps();
+}
+function handleDeepLink(){
+  if(deepLinkHandled) return;
+  const id=deepLinkCaseId;
+  if(id && alerts.some(a=>(a.id||a.alert_id)===id)){
+    deepLinkHandled=true;
+    setFilterValue('all');
+    renderList();
+    setTimeout(()=>selAlert(id),250);
+    return;
+  }
+  if(deepLinkVesselId && vessels.some(v=>v.id===deepLinkVesselId)){
+    deepLinkHandled=true;
+    setTimeout(()=>selVessel(deepLinkVesselId),250);
+  }
 }
 function bestAlertForVessel(v){
   const active=alerts.filter(a=>a.status==='active' || a.status==='triaged');
