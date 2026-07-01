@@ -251,8 +251,8 @@ async function loadVessels(){
   let vessels=[],alerts=[];
   try{
     const [vr,ar]=await Promise.all([
-      fetch(`${window.location.origin}/api/vessels`),
-      fetch(`${window.location.origin}/api/alerts?limit=200`)
+      fetch(`${window.location.origin}/api/vessels`, { cache: 'no-store' }),
+      fetch(`${window.location.origin}/api/alerts?limit=200&_=${Date.now()}`, { cache: 'no-store' })
     ]);
     vessels=await vr.json();alerts=await ar.json();
   }catch{
@@ -263,9 +263,10 @@ async function loadVessels(){
   if(!vessels.length){grid.innerHTML='<div style="grid-column:1/-1;padding:48px;text-align:center;color:var(--mist)">No vessels found</div>';return;}
   grid.innerHTML=vessels.map(v=>{
     const myA=alerts.filter(a=>a.vessel_id===v.id||a.vessel_name===v.name);
-    const active=myA.filter(a=>a.status==='active').length;
-    const resolved=myA.filter(a=>a.status==='resolved').length;
-    const inDis=active>0;
+    const active=myA.filter(a=>(a.status||'active')==='active').length;
+    const dispatched=myA.filter(a=>(a.status||'')==='dispatched').length;
+    const resolved=myA.filter(a=>(a.status||'')==='resolved').length;
+    const inDis=active>0||dispatched>0;
     const pos=v.lat?`${parseFloat(v.lat).toFixed(4)}°N, ${parseFloat(v.lng).toFixed(4)}°E`:'—';
     const bat=v.battery_pct||VB[v.id]||80;
     const bc=batClass(bat);
@@ -289,7 +290,7 @@ async function loadVessels(){
       </div>
       <div class="vc-stats">
         <div class="vcs"><div class="vcs-n o">${myA.length}</div><div class="vcs-l">Alerts</div></div>
-        <div class="vcs"><div class="vcs-n ${active>0?'r':'g'}">${active}</div><div class="vcs-l">Active</div></div>
+        <div class="vcs"><div class="vcs-n ${inDis?'r':'g'}">${active+dispatched}</div><div class="vcs-l">Open</div></div>
         <div class="vcs"><div class="vcs-n g">${resolved}</div><div class="vcs-l">Resolved</div></div>
       </div>
       <a class="vc-btn ${inDis?'vc-btn-sos':''}" href="/dashboard">${inDis?'🆘 VIEW ACTIVE SOS →':'View on Dashboard →'}</a>
@@ -297,6 +298,7 @@ async function loadVessels(){
   }).join('');
 }
 loadVessels();
+setInterval(loadVessels,5000);
 </script>
 </body>
 </html>

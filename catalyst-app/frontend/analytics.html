@@ -326,7 +326,7 @@ async function load(){
   document.getElementById('upd-ts').textContent=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
   let alerts=[];
   try{
-    const r=await fetch(`${window.location.origin}/api/alerts?limit=200`);
+    const r=await fetch(`${window.location.origin}/api/alerts?limit=200&_=${Date.now()}`, { cache: 'no-store' });
     alerts=await r.json();
   }catch{
     // Demo data
@@ -421,7 +421,7 @@ async function load(){
 }
 
 load();
-setInterval(load,30000);
+setInterval(load,5000);
 </script>
 </body>
 </html>

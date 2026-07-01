@@ -1517,7 +1517,6 @@ setInterval(renderList,30000); // refresh elapsed times
 <script>
   (function () {
     var FEMALE_HINTS = ["female", "woman", "zira", "samantha", "google us english", "kannada"];
-    var toastObserver;
 
     function textOf(node) {
       return (node && (node.innerText || node.textContent || "") || "").trim();
@@ -1559,48 +1558,6 @@ setInterval(renderList,30000); // refresh elapsed times
       window.speechSynthesis.speak(utter);
     };
 
-    function attachToastClose(node) {
-      if (!node || node.nodeType !== 1 || node.dataset.tarangDismissReady === "1") return;
-      var style = window.getComputedStyle(node);
-      var looksLikeToast =
-        style.position === "fixed" ||
-        /toast|snack|alert|message|notice|popup/i.test(node.className || "") ||
-        /toast|snack|alert|message|notice|popup/i.test(node.id || "");
-      if (!looksLikeToast) return;
-
-      node.dataset.tarangDismissReady = "1";
-      if (style.position === "static") node.style.position = "relative";
-      if (node.querySelector(".tarang-close-btn")) return;
-
-      var btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "tarang-close-btn";
-      btn.setAttribute("aria-label", "Close message");
-      btn.textContent = "Close";
-      btn.style.position = "absolute";
-      btn.style.top = "10px";
-      btn.style.right = "10px";
-      btn.style.zIndex = "9999";
-      btn.style.border = "1px solid rgba(255,255,255,0.2)";
-      btn.style.background = "rgba(11,22,32,0.95)";
-      btn.style.color = "#fff";
-      btn.style.padding = "6px 10px";
-      btn.style.cursor = "pointer";
-      btn.addEventListener("click", function (event) {
-        event.preventDefault();
-        event.stopPropagation();
-        node.remove();
-      });
-      node.appendChild(btn);
-    }
-
-    function scanToasts() {
-      document.querySelectorAll("body *").forEach(function (node) {
-        var content = textOf(node);
-        if (content && content.length < 240) attachToastClose(node);
-      });
-    }
-
     function looksResolvedAction(node) {
       var text = textOf(node).toLowerCase();
       return /resolved|complete rescue|rescue complete|mark resolved|close case|case closed/.test(text);
@@ -1621,12 +1578,10 @@ setInterval(renderList,30000); // refresh elapsed times
     }, true);
 
     document.addEventListener("DOMContentLoaded", function () {
-      scanToasts();
+      document.querySelectorAll(".tarang-close-btn").forEach(function (node) { node.remove(); });
       if ("speechSynthesis" in window) {
         window.speechSynthesis.onvoiceschanged = function () {};
       }
-      toastObserver = new MutationObserver(scanToasts);
-      toastObserver.observe(document.body, { childList: true, subtree: true });
     });
   })();
 </script>
